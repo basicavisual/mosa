@@ -165,5 +165,6 @@ without JavaScript. Invite general descriptions before sensitive attachments;
 require neither legal identity nor institutional representation. Mailbox handling
 and response commitments belong to [operations](operations.md#mailbox-operations).
 
-Resource files, external reading links, event registration and the institution map
-remain pending.
+External reading links live in `apps/website/src/data/resource-links.json`, with
+`title`, optional `subtitle` and `url` for each language. Resource files, event
+registration and the institution map remain pending.

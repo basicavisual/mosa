@@ -2,6 +2,7 @@ import type { PublicCollection } from "@mosa/public-collection";
 import labels from "../content/pages/reference-labels.json";
 import resources from "../content/pages/resource-summaries.json";
 import type { Locale } from "../i18n/routes";
+import resourceLinks from "./resource-links.json";
 
 export const contactEmail = "mosa@radicaldata.org";
 export const conceptIds = [
@@ -64,4 +65,7 @@ export function getResources(locale: Locale) {
     title: copy[`${id}Title`],
     description: copy[`${id}Description`],
   }));
+}
+export function getResourceLinks(locale: Locale) {
+  return resourceLinks.map((link) => link[locale]);
 }

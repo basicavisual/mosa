@@ -775,21 +775,43 @@ strong {
 .reading-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 3rem 2rem;
+  gap: 1rem 2rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
-.reading-grid article {
-  padding-top: 1rem;
-  border-top: 1px solid #5b5b5b;
-  min-height: 210px;
+.reading-grid li {
+  display: flex;
 }
-.reading-grid h3 {
+.resource-link {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 22rem;
+  padding: 1.5rem;
+  color: inherit;
+  text-decoration: none;
+  transition: background 150ms;
+}
+.resource-link-arrow {
+  align-self: flex-end;
+  font-size: 3rem;
+  line-height: 1;
+  margin-bottom: 1.5rem;
+}
+.resource-link h3 {
   font-size: 1.45rem;
+  font-weight: 500;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
 }
-.reading-number {
-  display: block;
-  color: var(--coral);
-  font-size: 0.8rem;
-  margin-bottom: 2rem;
+.resource-link p {
+  margin-top: 1rem;
+  font-weight: 300;
+}
+.resource-link:hover,
+.resource-link:focus-visible {
+  background: var(--coral);
 }
 .origin {
   display: grid;
@@ -1322,9 +1344,12 @@ strong {
   .reading-grid {
     gap: 2rem 1.25rem;
   }
-  .reading-grid h3 {
+  .resource-link {
+    min-height: 16rem;
+    padding: 1rem;
+  }
+  .resource-link h3 {
     font-size: 1.15rem;
-    overflow-wrap: anywhere;
   }
   .institution-list article {
     grid-template-columns: 1fr;
@@ -1367,7 +1392,8 @@ strong {
     scroll-behavior: auto;
   }
   .button,
-  .resource-line {
+  .resource-line,
+  .resource-link {
     transition: none;
   }
 }
