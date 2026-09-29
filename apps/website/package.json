@@ -8,6 +8,7 @@
     "build": "astro check && astro build",
     "check": "astro check",
     "preview": "astro preview",
+    "validate:collection": "node --import tsx scripts/validate-collection.ts",
     "validate:localisation": "node --import tsx scripts/validate-localisation.ts",
     "test": "vitest run --root ../.. apps/website/src",
     "test:http": "node --import tsx scripts/verify-http.ts"

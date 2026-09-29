@@ -40,6 +40,10 @@ explorer-build:
 website-check:
     pnpm --filter @mosa/website check
 
+# Validate the Git-backed public collection and all cross-file references.
+collection-check:
+    pnpm --filter @mosa/website validate:collection
+
 explorer-check:
     pnpm --filter @mosa/explorer check
 
