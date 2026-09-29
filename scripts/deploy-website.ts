@@ -7,8 +7,10 @@ async function main() {
   const commit = process.env.GITHUB_SHA;
   if (!webhook || !token || !productionURL || !commit)
     throw Error("Set COOLIFY_DEPLOY_WEBHOOK, COOLIFY_API_TOKEN, PRODUCTION_URL and GITHUB_SHA");
-  const collection = await deployWebsite({ webhook, token, productionURL, commit });
-  console.log(`Verified website at ${commit}: ${collection.records.length} public records`);
+  const build = await deployWebsite({ webhook, token, productionURL, commit });
+  console.log(
+    `Verified website at ${build.commit}: ${build.objects} objects and ${build.sources} sources`,
+  );
 }
 main().catch((error) => {
   console.error(error);

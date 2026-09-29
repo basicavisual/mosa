@@ -1,218 +1,53 @@
 # Operations
 
-Inspect existing Coolify and Supabase configuration before provisioning resources.
-Store credentials and certificates in the relevant runtime or GitHub environment.
+## Local requirements
 
-## Deployment boundaries
+Use the versions pinned in `mise.toml`. Install Git LFS and run `git lfs
+install` once per machine. `just install` installs JavaScript dependencies and
+Git hooks.
 
-| Target | Build/runtime | Release path |
-| --- | --- | --- |
-| Research explorer | Root `Dockerfile`, port 4321; database/Auth/Storage runtime secrets | `CI`: static, database and image checks → production migrations → explorer deployment |
-| Public website | `apps/website/Dockerfile`, port 8080; reads the explorer's public feed without database credentials | Manual `Website` workflow on `main` for code changes only |
+The site needs no database, object storage account or collection API.
 
-Keep Coolify auto-deploy disabled. Migrations precede explorer deployment and
-remain compatible with old and new app versions. Website checks/builds do not
-need Supabase credentials. The explorer's public collection feed must be healthy
-before the website code is deployed.
+## Docker
 
-## Research configuration
+`just website-image` builds `apps/website/Dockerfile` from the repository
+root. Git LFS must be hydrated before the Docker build because `.git` is not in
+the build context. The image listens on port 8080 and exposes `/build.json` for
+commit and collection-count verification.
 
-The GitHub `production` environment is restricted to `main` and uses these secrets:
+For an exact local revision marker, build with:
 
-| Secret | Purpose |
-| --- | --- |
-| `SUPABASE_ACCESS_TOKEN` | CLI project access for link/migration operations |
-| `SUPABASE_PROJECT_ID` | Hosted project reference |
-| `SUPABASE_DB_PASSWORD` | Migration connection password |
-| `COOLIFY_DEPLOY_WEBHOOK` | Research application deployment webhook |
-| `COOLIFY_API_TOKEN` | Token authorised to deploy that application |
-| `PRODUCTION_URL` | Research origin used by the deployment smoke test |
+```sh
+docker build --build-arg SOURCE_COMMIT="$(git rev-parse HEAD)" \
+  --file apps/website/Dockerfile --tag mosa-website:local .
+```
 
-These secrets are separate from `website-production`. A Supabase account access
-token is not a project publishable key. Enter secrets directly in the hosting
-and GitHub interfaces. Record token expiry outside Git.
+## Coolify
 
-The previous deployment setup recorded project-scoped Read access for Project
-Settings, Connection Pooling, API Keys and API Key Secrets for CLI linking.
-Recheck those requirements when the pinned CLI or platform permissions change;
-do not broaden permissions solely to silence optional service-read warnings.
-Migrations use the separate database password.
+The website application must use:
 
-Configure these explorer runtime variables, not Docker build arguments:
+- branch `main`;
+- commit SHA `HEAD`;
+- Dockerfile `apps/website/Dockerfile` with the repository root as context;
+- exposed port 8080;
+- automatic deployments disabled;
+- preview deployments disabled;
+- Git LFS enabled.
 
-| Variable | Requirement |
-| --- | --- |
-| `DATABASE_URL` | Production reader connection; literal value if password contains `$` |
-| `DATABASE_SSL_CA` | Database CA certificate; verified TLS in production |
-| `HEALTHCHECK_TOKEN` | Protects `/livez` and `/readyz` through `X-Health-Token` |
-| `NODE_ENV` | `production` |
-| `DATABASE_POOL_SIZE` | Optional reader pool override; default 5 |
-| `DATABASE_STATEMENT_TIMEOUT_MS` | Optional reader timeout override; default 5000 ms |
-| `CAPTURE_DATABASE_URL` | Separate login with `capture_writer` for private research |
-| `SUPABASE_URL` | Same project's Auth/Storage origin |
-| `SUPABASE_PUBLISHABLE_KEY` | Research sign-in and Auth requests |
-| `RESEARCH_ORIGIN` | Exact research HTTPS origin, without trailing slash |
-| `SOURCE_STORAGE_KEY` | Backend secret or legacy `service_role` key for private uploads |
-| `SOURCE_STORAGE_URL` | Optional Storage origin override; defaults to `SUPABASE_URL` |
+Coolify provides `SOURCE_COMMIT` to the running container. The deployment
+script checks the application settings, triggers one deployment, verifies the
+job commit, reads `/build.json` and checks both collection routes.
 
-The image defaults to `HOST=0.0.0.0`, `PORT=4321`. Local reader connections default
-to local Supabase; `LOCAL_DATABASE_URL` is a deprecated development alias.
-Outside production, database configuration permits only loopback hosts.
-See [the environment example](../apps/explorer/.env.example) and
-[connection configuration](../apps/explorer/src/lib/database-config.ts).
-
-## Research access and storage
-
-Preconditions: the intended Supabase project and Coolify app exist, migrations
-can be applied, and an operator has administrative access outside the application.
-Do not create a second project simply because local verification is incomplete.
-
-1. Apply all committed migrations through the normal migration process. Do not
-   reset the hosted database or load fixtures. Confirm migration history before
-   deploying consumers. The local bundle and hosted-retirement migrations are
-   both required; retained historical job tables do not imply an active worker.
-2. Create or inspect a dedicated reader login, conventionally
-   `explorer_runtime_production`, granted `explorer_reader`. Set
-   `default_transaction_read_only=on`, a short statement timeout and a small
-   connection limit. Verify SELECT works and writes/DDL fail.
-3. Create or inspect a separate login granted `capture_writer`, also with bounded
-   connections and timeout. This role maintains private research and importer
-   bookkeeping. It cannot administer researchers, update existing canonical
-   claims or manage publication. Do not give its credentials to researchers.
-4. Configure the runtime variables above. Use direct PostgreSQL if the host has
-   outbound IPv6, otherwise Supavisor session mode on port 5432. Use the database
-   CA and verify TLS before enabling server SSL enforcement. Keep the Data API
-   disabled; application queries use PostgreSQL directly.
-5. Enable email OTP, disable public sign-ups and configure SMTP. Include
-   `{{ .Token }}` in the Magic Link email template: the app uses email codes,
-   not a magic-link callback. Create the invited Auth user and add its ID to
-   `capture.researcher` using administrative access.
-6. Confirm `research-sources` is private and `SOURCE_STORAGE_KEY` belongs to the
-   same project. Modern `sb_secret_…` keys and legacy `service_role` keys are
-   supported by the Storage adapter. Keep the key server-side. No search/model
-   API keys, hosted worker or Cron schedule are needed.
-7. Keep reverse-proxy upload limits above 20 MB plus multipart overhead. The app
-   itself bounds requests; a PDF request has a 20,000,000-byte ceiling including
-   its form overhead, so the usable file size is slightly smaller. Bundle JSON
-   is also limited to 20,000,000 bytes; its upload route allows form overhead.
-8. Verify email-code sign-in, draft save/reopen, a small PDF upload/download and a
-   small real bundle import on the hosted app. Confirm another researcher cannot
-   retrieve the private file. Check that retry preserves drafts and edits before
-   attempting larger imports. Use [the research guide](local-research.md).
-
-Private requests verify Auth and the enabled researcher record; sessions last at
-most one hour, without stored refresh tokens. Set `capture.researcher.enabled`
-to false to revoke application access. Private responses use `private, no-store`,
-and forms check origin. Reader routes retain their existing visibility; accepted
-research is not equivalent to private draft storage.
-
-## Explorer hosting and verification
-
-Use the private repository's Coolify GitHub App integration, branch `main`,
-Dockerfile build pack, root build context and `/Dockerfile`. Use internal port
-4321, no host port mapping or persistent volume, and rolling updates with default
-container naming. Configure the research domain, HTTPS and runtime variables.
-Point health checks to `/readyz` with the `X-Health-Token` header. Without the token,
-health routes return 404; external uptime checks should use a normal page.
-
-For a new deployment, verify the migration history and reader privileges, deploy
-through the configured target, then check container health, HTTPS, authorised
-health responses and representative reader pages. Complete the private-workspace
-checks above. Check logs without copying credentials or source contents.
-
-The CI smoke test checks reachability; confirm the deployed revision in Coolify.
-
-## Public website
-
-Use a separate Coolify application, root build context,
-`/apps/website/Dockerfile` and internal port 8080. The configured canonical domain
-is `https://museumofstolenartefacts.org`. Use `/` for HTTP health checks. Redirect
-HTTP and `www` to the canonical HTTPS hostname, preserving paths and queries.
-The Node container needs no database credentials or persistent volume. Collection
-pages fetch `https://research.museumofstolenartefacts.org/api/public-collection.json`.
-
-Configure GitHub `website-production`, restricted to `main`:
-
-| Setting | Kind | Purpose |
-| --- | --- | --- |
-| `COOLIFY_DEPLOY_WEBHOOK` | Secret | This website's production webhook |
-| `COOLIFY_API_TOKEN` | Secret | Coolify application read and deploy permissions |
-| `PRODUCTION_URL` | Environment variable | Canonical website URL; workflow reads `vars.PRODUCTION_URL` |
-
-Enable Coolify API access, set branch `main`, set Commit SHA to `HEAD`,
-and disable automatic and preview deployments. The Website workflow verifies
-that each finished job built the current `main` commit and serves the live feed.
-The dedicated publisher
-login is needed only for exceptional withdrawal, outside the website runtime.
-See [publication](collection-publication.md#deploy-website-code).
+GitHub's Website workflow is the production release path. It requires
+`COOLIFY_DEPLOY_WEBHOOK` and `COOLIFY_API_TOKEN` secrets plus the
+`PRODUCTION_URL` environment variable.
 
 ## Recovery
 
-### Explorer application or migration failure
+Collection and website releases are the same Git commit. Revert the faulty
+commit, run `just verify`, merge the revert and dispatch the Website workflow.
+Do not restore an old Docker image as a durable content rollback because its
+Git state will be less clear.
 
-Keep migrations forward-compatible. For an app-only regression, redeploy a known
-compatible explorer image or make a forward fix. Do not roll back database schema.
-If migrations fail, inspect which changes applied, add a forward-fix migration
-where needed and rerun the release. Do not hand-edit production schema outside
-migration history. If only deployment failed, complete deployment or ship a
-compatible follow-up. This explorer rollback procedure does not apply to the website.
-
-### Website failure or withdrawal
-
-If the public feed is unavailable, collection pages return 503 without serving
-old content. Restore the explorer/database service and verify the feed before
-retrying the website. To revert website code, commit a compatible forward fix or
-revert and run the Website workflow; the published records stay in PostgreSQL.
-To remove a record, use [the hide command](collection-publication.md#withdraw-an-object)
-and verify the bilingual pages, snapshot endpoint and sitemap.
-
-### Upload fails with HTTP 503
-
-Sign-in success does not establish Storage configuration. Inspect the research
-app's runtime `SOURCE_STORAGE_KEY` and redeploy after correcting it. The sign-in
-publishable key cannot upload to private Storage. Check that the backend key is
-from the same project; never paste its value in chat, Git or build arguments.
-The adapter sends modern secret keys through `apikey` and supports legacy keys.
-Logs report the configuration error or Storage response status without source
-contents. Retry the same bundle after fixing configuration to preserve saved work.
-
-### Database credential rotation and outages
-
-Rotate the affected login's password outside Git, update the corresponding
-Coolify runtime variable or GitHub publisher secret, and restart/redeploy the
-consumer. Reader verification uses authorised `/readyz` plus a normal page;
-writer verification uses a private draft; publisher verification reads the
-public feed without changing any record. Inspect other consumers
-before rotating shared credentials.
-
-For outages, inspect container health, normal-page reachability, protected health
-responses, Supabase availability, verified TLS and the last migration/deploy logs.
-Check recent runtime-secret changes. Use Supabase for database logs/backups,
-Coolify for app logs and GitHub Actions for release logs. Confirm managed daily
-backups are active and include the private publication ledger; follow the
-provider's restore procedure when needed. Restore is a separate operational action.
-
-### Checkouts renamed from mosa-db
-
-The local project ID is `mosa`; old `mosa-db` volumes are not migrated automatically.
-Stop an old running stack with `just supabase stop --project-id mosa-db` before
-starting the new one. Export local data you need first. Old volumes are retained;
-the hosted project link is unaffected. Reset/fixture commands initialise development
-stores only and must not be used to migrate research data.
-
-## Mailbox operations
-
-[ADR 015](adrs/015-use-email-for-public-contact.md) selects email-only contact.
-The approved public address is `mosa@radicaldata.org`. Assign a primary and backup
-steward with individual access and MFA. Track new, assigned, waiting and closed
-conversations; include correction/removal requests and check spam. Verify actual
-receipt, a reply and backup access before claiming reliable delivery.
-
-The responsible team must establish mailbox ownership, provider arrangements,
-privacy notice, retention covering received/sent/provider copies and any staffed
-response target. Five working days was an example, not an adopted commitment.
-Treat messages as private correspondence: contact does not authorise research
-import, publication, partner sharing or external AI processing. Keep correspondence
-outside the collection database unless an agreed contribution follows its review
-process. Do not promise anonymity or end-to-end confidentiality for ordinary email.
-Use [the roadmap](roadmap.md#human-decisions) to track unresolved ownership and policy.
+Keep the Coolify API token and webhook out of Git. Do not put private research
+or unauthorised media in `collection/`.

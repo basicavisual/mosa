@@ -2,7 +2,8 @@
 
 ## Status
 
-Accepted; extended by packet v2/v3 and [local bundle preparation](017-local-research-bundles.md).
+Superseded by [ADR 020](020-use-a-git-backed-public-collection.md). Retained as
+the record of the former database importer.
 
 ## Context
 
@@ -14,8 +15,8 @@ without waiting for comprehensive extraction or source-file storage.
 ## Decision
 
 Use one shared validator, identity resolver and transactional importer for canonical
-dossiers, called by the CLI and research acceptance. The
-[packet schema](../../schemas/object-dossier-packet.schema.json) defines supported writes.
+dossiers, called by the CLI and research acceptance. The former packet schema
+defined supported writes.
 
 - PostgreSQL creates canonical identities. Packets use symbolic entity keys;
   per-dataset bindings retain their canonical IDs across imports.

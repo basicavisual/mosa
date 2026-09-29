@@ -1,87 +1,114 @@
-# Publish and withdraw collection objects
+# Collection authoring and publication
 
-## The researcher flow
+Every tracked record in `collection/` is public material. Git history supplies
+review, authorship and rollback. There is no separate database publishing step.
 
-A local agent finds and prepares sources. Uploading its bundle creates private
-Drafts. A researcher checks the original source, every proposed claim, citation
-and excerpt, and confirms object identity in the research workspace. **Publish**
-accepts that reviewed revision into research and writes its validated public
-record in the same database transaction. **Publish and next** does the same and
-opens the next draft. Saving, deferring and rejecting never publish.
+## Add or edit an object
 
-Publishing is the public decision. There is no separate release candidate,
-JSON export, commit, PR or website deployment for each object. The review form
-states that claims, citations and excerpts become public; agent notes and
-preserved source files remain private. A legacy card needs its complete public
-name, holder, speaker, identifier and evidence. A full dossier can retain
-unknowns and needs only an evidenced name, classification, description or
-identifier for its heading. An incomplete legacy draft stays a draft until it
-can be published as a complete dossier or card.
+Create `collection/objects/<id>.json`:
 
-The database stores one public projection per object in
-`publication.published_record`. It is built with the same strict public contract
-used by the former release exporter. The restricted capture writer may insert or
-replace only a record backed by its own accepted draft. The public API reads only
-visible projections; it never reads private drafts or source storage.
-
-## What the public website reads
-
-The explorer serves `/api/public-collection.json` from visible projections. It
-returns a validated bilingual collection payload with a stable content revision.
-The website requests this feed on each collection, institution, object, snapshot
-and sitemap request. It has no database credentials. Collection and institution
-responses use `Cache-Control: no-store`; if the feed is unavailable, they return
-503 rather than a stale built copy. The public site is therefore current after
-Publish without a rebuild.
-
-Migration `20260923190000_published_collection.sql` carries the records from the
-already approved desired release into the new projection. It contains no real
-research content. Older release-ledger rows remain for audit, but the website no
-longer uses them. Before the first website code deployment, check that the
-explorer feed contains the expected public objects and no private notes.
-
-## Withdraw an object
-
-A maintainer can hide a public record immediately with the dedicated publisher
-connection. This changes the database, so the website removes it on the next
-request. Use the object UUID and record the actual decision-maker and reason:
-
-```sh
-just collection hide --item <object-uuid> --actor 'Actual operator' --authority 'Reason for withdrawal'
+```json
+{
+  "id": "example-object",
+  "name": "Concise navigation name",
+  "foregroundedClaims": ["example-claim"]
+}
 ```
 
-The action is recorded in `publication.record_action`. A hidden record cannot be
-republished by a researcher. After a correction is ready, a maintainer may clear
-the hidden projection, leaving it absent until a new draft is reviewed and
-published:
+The filename must match `id`. Preserve existing UUIDs because they are public
+URLs. The `name` is an editorial navigation label; put names asserted by
+sources in `has_name` claims.
 
-```sh
-just collection clear --item <object-uuid> --actor 'Actual operator' --authority 'Reason for allowing a new review'
+## Add a source, claims and images
+
+Create `collection/sources/<id>.json`:
+
+```json
+{
+  "id": "example-source",
+  "author": "Named person or institution",
+  "reference": "https://example.org/catalogue/123",
+  "language": "en-GB",
+  "claims": [
+    {
+      "id": "example-claim",
+      "objectId": "example-object",
+      "predicate": "classified_as",
+      "value": "Moai / Living Ancestor"
+    }
+  ],
+  "images": [
+    {
+      "id": "example-image",
+      "objectId": "example-object",
+      "file": "example-object/front.jpg",
+      "alt": "Front view of the object",
+      "credit": "Institution or photographer",
+      "rights": "Rights statement",
+      "originalUrl": "https://example.org/catalogue/123"
+    }
+  ]
+}
 ```
 
-The CLI requires `COLLECTION_DATABASE_URL` for the dedicated
-`collection_publisher` login and `COLLECTION_DATABASE_SSL_CA` for a remote
-connection. Keep both outside Git. Verify removal on both language listings,
-the object URL, the public snapshot endpoint and the sitemap. Do not restore a
-website image to undo publication: the database projection controls visibility.
+Use `null` for an unknown author rather than inventing one. Use a BCP 47
+language tag such as `es-CL`, `en-GB`, `rap` or `und`.
 
-## Deploy website code
+Download only images MoSA is authorised to publish. Put each binary at
+`collection/images/<file>`; the repository's Git LFS rules track supported
+image formats. A normal checkout restores the image before Astro and Docker
+optimise it. Do not use remote museum image URLs as the only production asset:
+they can change, block hotlinking or disappear. Keep the original URL in the
+image record for provenance.
 
-The `Website` GitHub workflow deploys code from the current head of `main`. It
-checks the research feed and Coolify application, then verifies that the finished
-job built that exact commit and the served collection pages match the feed.
-The Coolify application must track `main` with Commit SHA set to `HEAD`; automatic
-and preview deployments stay disabled. The website token needs application read
-and deploy access. This code deployment is needed only
-when the website changes, not when researchers publish objects.
+## Add an editorial
 
-```sh
-just collection-website-verify
-just test-db
+Create `collection/editorials/<id>.md`:
+
+```markdown
+---
+id: example-editorial
+objectId: example-object
+title: Editorial title
+author: Named author
+language: es-CL
+---
+
+Editorial text in Markdown.
 ```
 
-The first command changes a synthetic feed while a built website remains
-running, then checks publication, withdrawal and feed failure in both languages.
-The second uses a disposable database to check capture transactions, the public
-projection and role permissions. Neither proves hosted Auth, Storage or Coolify
-is configured; verify the live origin after the one-time deployment.
+Use `author: null` only while authorship is genuinely unresolved. An editorial
+can be in one language; the page marks its language rather than pretending it is
+translated. Claims made in the prose do not automatically become structured
+claims.
+
+## Foreground a perspective
+
+Add the chosen claim ID to the object's `foregroundedClaims` array. The claim
+must refer to that object. Keep the source visible and choose foregrounding
+through editorial discussion: it is MoSA taking a position, not a technical
+calculation.
+
+## Validate and review
+
+Run:
+
+```sh
+just collection-check
+just website-build
+```
+
+Review the affected object page in both routes. Check attribution, source
+language, image rights and alt text, foregrounding, and whether the canonical
+navigation name obscures a source account.
+
+## Deploy and withdraw
+
+Merging collection changes does not deploy automatically. The manually
+dispatched Website workflow builds the repository with Git LFS, deploys through
+Coolify and verifies the exact commit and both language collection pages.
+
+To withdraw material, delete its editorial, image reference, claim, source or
+object as appropriate, review links, and deploy the new commit. Preserve the Git
+history. For an urgent rollback, revert the responsible commit and deploy that
+revert.

@@ -66,10 +66,9 @@ needs its own design; a general form does not establish a suitable channel.
 
 ## Procedure and verification
 
-[Website content](../website-content.md#contact-and-release) owns the public editing
-instructions; [operations](../operations.md#mailbox-operations) owns mailbox setup,
-receipt/reply/backup verification and handling. The [roadmap](../roadmap.md#human-decisions)
-tracks unresolved owners and policies. Verify the address on mobile/desktop, copying,
+[Website content](../website-content.md#contact) owns the public editing
+instructions. Mailbox setup, receipt, reply and backup remain operational human
+responsibilities. Verify the address on mobile/desktop, copying,
 no-JavaScript use, actual delivery and a reply before claiming the service works.
 
 The [CARE Principles](https://www.gida-global.org/careprinciples) inform the original

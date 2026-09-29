@@ -2,7 +2,8 @@
 
 ## Status
 
-Accepted.
+Partly superseded by [ADR 020](020-use-a-git-backed-public-collection.md). The
+website, mise, just and pnpm choices remain; the explorer and database were removed.
 
 ## Context
 

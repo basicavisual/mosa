@@ -1,64 +1,46 @@
 # MoSA
 
-The Museum of Stolen Artefacts: a public Astro website, a research explorer and
-a Supabase database for entities, attributed claims, evidence, provenance and
-restitution case management.
+The Museum of Stolen Artefacts is a bilingual public website and a versioned
+collection of source-attributed records about displaced cultural objects.
 
-Researchers prepare sources locally or in the authenticated workspace, confirm
-identity and accept reviewed proposals through the shared dossier importer.
-The researcher's Publish action adds the reviewed object to a public database
-projection. The website reads it through the explorer's public feed without
-database credentials or a per-object Git change. Hosted discovery and preparation have
-been retired; local research bundles are the current contribution workflow.
+The website, collection data, editorials and publishable images all live in this
+repository. There is no database or separate research application. A deployment
+builds one Docker image from the repository using
+[`apps/website/Dockerfile`](apps/website/Dockerfile).
 
 Public website: [museumofstolenartefacts.org](https://museumofstolenartefacts.org/).
-Research: [research.museumofstolenartefacts.org](https://research.museumofstolenartefacts.org/).
-These are the configured project addresses, not a live health report.
+This is the configured project address, not a live health report.
 
 ## Start development
 
-Install [mise](https://mise.jdx.dev/) and Git. Tool versions come from `mise.toml`.
+Install [mise](https://mise.jdx.dev/) and Git LFS, then run:
 
 ```sh
 mise trust
 mise install
+git lfs install
 mise exec -- just install
 mise exec -- just website-dev
 ```
 
-Open <http://localhost:4322/es/> or <http://localhost:4322/en/>. The website needs
-no database, Docker or credentials. With mise active, use `just` directly;
-otherwise prefix commands with `mise exec --`.
+Open <http://localhost:4322/es/> or <http://localhost:4322/en/>. The website
+needs no database, Docker or credentials for local development. With mise
+active, use `just` directly; otherwise prefix commands with `mise exec --`.
 
-## Research explorer
+Run `just collection-check` after changing collection records and `just verify`
+before committing. Run `just` to list all commands.
 
-Docker is required for local Supabase. Load synthetic fixtures only into a
-development store: fixture loaders replace their reserved test records.
+## Repository
 
-```sh
-just db-start
-just db-fixtures
-just explorer-dev
-```
+| Path | Purpose |
+| --- | --- |
+| `collection/objects/` | One small identity and foregrounding record per object |
+| `collection/sources/` | Sources with their attributed claims and image records |
+| `collection/editorials/` | Optional authored Markdown publications linked to objects |
+| `collection/images/` | Publishable image files stored through Git LFS |
+| `apps/website/` | Astro website and collection validation |
+| `docs/` | Current guides, decisions and retained competency cases |
 
-Explorer: <http://localhost:4321>. Supabase Studio: <http://localhost:54323>.
-Private researcher sign-in and source storage need the separate configuration in
-[operations](docs/operations.md#research-access-and-storage).
-
-`just db-reset` resets local data and applies migrations without seed data.
-`just test-db` and `just verify` create and remove a separate disposable test stack,
-including checks for generated database types. Never load fixture SQL into production.
-
-Run `just` to list commands. `just install` also installs Git hooks.
-
-## Documentation
-
-- [Agent instructions](AGENTS.md): task routing, implementation rules and verification.
-- [Architecture](docs/architecture.md): current system and domain boundaries.
-- [Predicates](docs/predicates.md): claim vocabulary and evidence semantics.
-- [Research](docs/local-research.md): capture, local bundles, review and acceptance.
-- [Publication](docs/collection-publication.md): reviewer publishing, withdrawal and code deployment.
-- [Operations](docs/operations.md): environment configuration and recovery.
-- [Website content](docs/website-content.md): copy, events and languages.
-- [Roadmap](docs/roadmap.md): open work and live checks requiring evidence.
-- [ADRs](docs/adrs/) and [competency cases](docs/test-cases/): decisions and domain requirements.
+Read [collection authoring](docs/collection-publication.md) before adding public
+records. [Architecture](docs/architecture.md) explains the reduced model and its
+political choices. [Operations](docs/operations.md) covers Docker and Coolify.

@@ -31,7 +31,7 @@ const imageEntries = await readdir(path.join(root, "images"), {
 }).catch(() => []);
 const imageFiles = new Set(
   imageEntries
-    .filter((entry) => entry.isFile())
+    .filter((entry) => entry.isFile() && /\.(?:avif|jpe?g|png|webp)$/i.test(entry.name))
     .map((entry) =>
       path
         .relative(path.join(root, "images"), path.join(entry.parentPath, entry.name))

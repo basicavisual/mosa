@@ -1,7 +1,6 @@
 packages:
   - "."
-  - "apps/*"
-  - "packages/*"
+  - "apps/website"
 
 engineStrict: true
 nodeVersion: 24.18.0
@@ -16,7 +15,7 @@ allowBuilds:
   lefthook@2.1.10: true
 
 overrides:
-  # Temporary: Astro is exact-pinned to 7.0.9 in both apps because 7.1.x
+  # Temporary: Astro is exact-pinned to 7.0.9 because 7.1.x
   # was published within the minimumReleaseAge window and failed install.
   # Prefer a ranged Astro dependency again once a release clears the age gate
   # and is verified.
@@ -32,5 +31,3 @@ catalog:
   # Revisit when the upstream Astro language-tools issue is resolved.
   typescript: 6.0.3
   "@types/node": ^24.0.0
-  "@types/pg": ^8.20.0
-  pg: ^8.22.0

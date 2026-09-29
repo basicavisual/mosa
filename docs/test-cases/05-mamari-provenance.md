@@ -110,4 +110,4 @@ Pass. Seven provisional event anchors represent the Mamari accounts without stor
 
 ## Executable coverage
 
-- [Fixture](../../supabase/fixtures/phase-2-mamari.sql) and [SQL assertions](../../supabase/tests/database/phase-2-mamari.test.sql).
+Historical Supabase fixtures and SQL assertions were removed with the former database stack. This case is retained as a requirement for any future model extension.

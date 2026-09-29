@@ -1,7 +1,7 @@
 import path from "node:path";
 import { checkDocumentation } from "./lib/documentation";
+import { repositoryFiles } from "./lib/repository-files";
 import { runCommand } from "./lib/run-command";
-import { repositoryFiles } from "./lib/verification-workspace";
 
 async function main() {
   const root = path.resolve(__dirname, "..");

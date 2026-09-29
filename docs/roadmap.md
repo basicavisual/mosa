@@ -1,165 +1,29 @@
 # Roadmap
 
-## Live verification
+## Immediate editorial work
 
-The earlier public release workflow served a committed snapshot. The database-driven
-Publish flow requires a production migration, explorer deployment and one website
-code deployment before it becomes live. Verify the hosted services directly; local
-tests do not prove production Auth, Storage or hosting behaviour.
+- Review the three migrated records marked as former drafts in the
+  [migration report](../collection/migration-report.md).
+- Confirm authorship for the Hoa Haka Nana Ia and Mamari editorials.
+- Add authorised object images with credit, rights, alt text and source records.
+- Choose foregrounded claims with Rapa Nui collaborators rather than treating
+  prominence as an automatic museum-data rule.
+- Review canonical navigation names against source-attributed names.
 
-- [ ] Confirm the deployed research revision and complete migration history.
-- [ ] Demonstrate invited email-code sign-in and saving/reopening a private draft.
-- [ ] Import one small real bundle, reopen its preserved source and retry the same
-  bundle without duplicating drafts or losing edits. Verify cross-user denial.
-- [ ] Verify the migrated public records in `just collection status` and the
-  explorer feed, then deploy the website code and check both language routes.
-- [ ] Publish one reviewed real draft and verify it appears without a website build.
-- [ ] Rehearse hiding one object, checking both language routes, the object URL,
-  snapshot endpoint and sitemap, then measure the full withdrawal time.
+## Deliberately deferred model work
 
-## Open delivery work
+The reduced model does not implement structured provenance events, custody,
+restitution case administration, cultural-authority protocols, claim certainty
+or evidence locators. The [competency cases](test-cases/) preserve the harder
+requirements. Extend the model only when public material needs one of them.
 
-| Outcome | Dependencies | Acceptance boundary |
-| --- | --- | --- |
-| Reconcile PDF/CSV inventory | Preserved documents | Raw rows, inherited context and joined regions remain traceable; selected reconciled entries become leads/proposals without AI |
-| Shared research campaign | Existing private preparation/import | Explicit membership/submission, retained contribution history, revision checks and revocation; unrelated private work stays private |
-| Selected batch review | Shared campaign | Inspect evidence, select candidates explicitly, publish each transactionally; item-level errors and resumable retries without duplicate publication |
-| Correct accepted research | Existing acceptance | Separate correction from disagreement, preserve earlier evidence/history, reject stale/unauthorised changes and invalidate affected publication candidates |
-| Extend public finding catalogue | Reviewed dossier publication and live feed | Public search and downloads, per-excerpt authority, and editorial language review across every public surface |
-| Expand within one catalogue | Local discovery and demonstrated review capacity | One permitted API/catalogue adapter, exact upstream IDs, finite budgets, checkpoint/resume and no duplicate counting |
-| Review a changed source | Preserved versions and correction | Refresh creates a new immutable version when changed; review a diff without overwriting accepted claims or human edits |
+A future editing interface may be useful when Git becomes a practical barrier
+for contributors. Build it against the same small file contract before
+introducing another canonical datastore.
 
-Correction and further publication work can proceed before campaigns or shared batch review.
-Keep manual preparation usable without model credentials.
+## Release checks
 
-### Inventory reconciliation requirements
-
-The original private PDF is the citation; the supplied CSV is its derivative,
-not independent corroboration. Previous inspection recorded 179 CSV data rows,
-CP850 encoding and inventory pages 12–19. Verify those properties against the
-actual supplied files before implementing reconciliation; use synthetic equivalents
-in committed tests and never require private files in CI.
-
-Preserve all raw cells, blanks and source anomalies. Keep interpreted values
-separately as explicit, inherited, unspecified or ambiguous. Record source page,
-region/bounding box and donor-cell locators for inherited institution/location.
-
-- Inherit only within visually confirmed blocks, including checked page
-  continuations. Repeated headers need a continuation check; section changes
-  reset context. A new institution's missing location stays unresolved.
-- Do not inherit object descriptions by default. Seven institution-only entries
-  recorded on page 19 remain leads. Do not collapse similar rows or groups.
-- Join the recorded page 17–18 split description of a 23 cm stone ending in
-  `hombre pajaro`, retaining both regions and CSV records 147/148 (header counted
-  as record 1). This known transcription split is not proof that other rows match.
-- Preserve anomalous source wording, such as a reported museum/location pairing,
-  separately from proposed researched corrections. Never silently fix geography.
-- Keep many-to-many row/entry/candidate links, reconciliation revisions and review
-  decisions. Report raw rows, logical entries, distinct accepted objects and public
-  objects separately. Reprocessing must retain reviewed decisions.
-
-A compilation can be evidence directly without a museum match when identity can
-be distinguished and the selected wording is authorised. A discovered catalogue
-record remains another attributed source. An institution association at an unknown
-date does not establish current custody. Vague groups remain leads, not invented items.
-
-### Shared preparation, identity and review
-
-Retain separate identities for seed observations, source records, candidates and
-canonical objects, including many-to-many links and match reasons. Catalogue URLs,
-names and image resemblance generate possibilities; exact verified identifiers
-are stronger signals. Institutional succession or spelling changes need evidenced
-mapping and do not automatically establish continuous custody or identity.
-
-Keep unsupported observations and a small mapping-gap list tied to the user
-question each gap blocks. Do not invent predicates, Concept entities or migrations
-in response to a failed mapping. Record original wording, source version, locator,
-evidence relationship, asserting agent or unknown attribution, preparer/method and
-reviewer separately. A copied aggregator is not independent corroboration.
-
-Shared campaigns require database and Storage access enforcement, not only UI
-filtering. Private drafts enter a campaign only by explicit authorised submission.
-Separate preservation, model-processing and publication permissions. Restricted
-material and its counts must not leak through shared search or exports.
-
-Review should expose source evidence beside proposals and explain missing or
-ambiguous fields in plain language. Start selected batch review with at most 20
-candidates. Edits invalidate review; stale revisions fail individually. Record
-per-candidate decisions and recover from partial batches. Human review of each
-canonical candidate remains required; sampling or a second model pass cannot
-replace it. Retain hand-off history without duplicating sources or candidates.
-
-### Corrections and expanded publication
-
-Correction supersedes a selected assertion with history; disagreement preserves
-both accounts. Publication and supersession must be atomic and idempotent. The
-public projection must update only after a fresh human Publish decision.
-
-The version 2 contract permits a reviewed classification or description as a
-display label without turning it into `has_name`. It retains the label basis and
-attribution; holder, identifier, image or translation can be absent. Future
-editorial work should distinguish source-check date from custody date in public
-presentation when both are available.
-
-Document citations and reviewed excerpts publish without private storage URLs.
-Future permission controls should authorise claims, citations, excerpts, files
-and translations at their own scope. A private file does not become public because a claim cites it.
-Original-language material must remain identifiable; future research translations
-need source-revision links and their own publication authority.
-
-The validated public projection and website cover a document-backed description
-without a holder or identifier and a legacy card. Preserve reviewed wording when
-correcting canonical research. Extend object hiding to search and any future
-downloads; hidden records must not reappear from stale caches.
-Unresolved groups may later have a separately labelled leads view, not object counts.
-
-### Discovery and source refresh
-
-Select one adapter based on actual permitted access and observed yield. Local
-sessions need finite scope, request/time/cost limits and recorded stopping reasons;
-account/API credentials stay out of source metadata and committed bundles.
-Keep failed, blocked, ambiguous and no-match outcomes. Do not bypass challenges or
-substitute snippets/reconstructed content for preserved responses.
-
-A future persistent run must checkpoint progress, retain completed work on pause,
-resume without duplicate candidates and stop acquisition when review capacity is
-exhausted. This requirement does not select a new hosted worker or provider.
-Refresh must preserve earlier evidence, compare observations and leave unavailable
-sources inspectable from saved captures. Re-extraction should reuse saved content
-when only a parser/prompt changes. Unchanged content must not create duplicate proposals.
-
-Measure useful distinct objects reviewed per hour of total human work, correction
-rates, unresolved backlog, source diversity and cost per accepted object. Evaluate
-clear, ambiguous and negative cases with human adjudication; model confidence and
-raw page totals are not quality measures. Earlier 30-candidate evaluation and
-50–100-object ambitions are planning targets, never reasons to lower evidence rules.
-
-## Human decisions
-
-| Question | How to resolve it |
-| --- | --- |
-| Who owns the mailbox, backup coverage, privacy notice, retention and response target? | Assign operational owners and verify receipt/reply; do not adopt example retention periods or a five-day promise |
-| Which Spanish/English wording and Rapa Nui terminology/orthography are approved? | Complete [editorial review](website-content.md#pending-translation-and-review-work) with the relevant collaborators |
-| Are Dutch outputs required by the grant? | Inspect the award letter and approved communication plan before adding a locale |
-| What withdrawal deadline applies to a published object? | Agree the deadline with its publication owner and measure the hide command, live routes and caches |
-| Is a contributor-facing CMS needed, and under what hosting/control constraints? | Demonstrate an editing problem and trial representative tasks with actual editors before selecting a product |
-
-No CMS was selected or trialled. Retain file-based editing unless a task deliberately
-changes that decision. A future pilot should test bilingual editing, one event
-reused across pages, authenticated preview, author/publisher separation, featuring
-approved research by stable ID, withdrawal and export/restore. Decide required
-revision review explicitly; do not reintroduce website approval gates from the
-superseded CMS comparison. Current vendor recommendations need fresh research.
-
-## Follow-ups triggered by demonstrated need
-
-- Authorised downloads and images with credit, access controls and withdrawal.
-- OCR, browser-only catalogues, reference-only archival entry and additional source formats.
-- General interactive provenance and restitution authoring beyond local dossier packets.
-- Opt-in scheduled refresh, multi-party correction/governance and foregrounding history.
-- Research coverage states distinct from visibility: not researched, in progress,
-  documented and researched-but-not-established; no exposure of private activity.
-- First-class Concepts only through the competency criteria in
-  [ADR 013](adrs/013-foreground-claims-and-defer-first-class-concepts.md).
-- Contact forms only if observed barriers justify reconsidering
-  [ADR 015](adrs/015-use-email-for-public-contact.md).
+Before a production release, run `just verify` and `just website-image`.
+Confirm Coolify has Git LFS enabled and review the affected Spanish and English
+pages. Hosted deployment and image delivery can only be confirmed against the
+real production application.

@@ -3,49 +3,24 @@ name: Website
 on:
   push:
     branches: [main]
-    paths:
-      - 'apps/website/**'
-      - 'packages/public-collection/**'
-      - 'scripts/manage-public-collection.ts'
-      - 'scripts/lib/publication/**'
-      - 'scripts/verify-collection-website.ts'
-      - 'scripts/lib/verification-workspace.ts'
-      - 'scripts/lib/run-command.ts'
-      - 'scripts/deploy-website.ts'
-      - 'scripts/lib/website-deploy*'
-      - 'apps/explorer/package.json'
-      - 'biome.jsonc'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
-      - 'mise.toml'
-      - 'justfile'
-      - '.dockerignore'
-      - '.github/workflows/website.yml'
+    paths: &website-paths
+      - "apps/website/**"
+      - "collection/**"
+      - ".gitattributes"
+      - "scripts/deploy-website.ts"
+      - "scripts/lib/website-deploy*"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "justfile"
+      - ".dockerignore"
+      - ".github/workflows/website.yml"
   pull_request:
-    paths:
-      - 'apps/website/**'
-      - 'packages/public-collection/**'
-      - 'scripts/manage-public-collection.ts'
-      - 'scripts/lib/publication/**'
-      - 'scripts/verify-collection-website.ts'
-      - 'scripts/lib/verification-workspace.ts'
-      - 'scripts/lib/run-command.ts'
-      - 'scripts/deploy-website.ts'
-      - 'scripts/lib/website-deploy*'
-      - 'apps/explorer/package.json'
-      - 'biome.jsonc'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
-      - 'mise.toml'
-      - 'justfile'
-      - '.dockerignore'
-      - '.github/workflows/website.yml'
+    paths: *website-paths
   workflow_dispatch:
     inputs:
       deploy:
-        description: Deploy the website to its configured Coolify application
+        description: Deploy the website and collection to the configured Coolify application
         required: true
         type: boolean
         default: false
@@ -62,7 +37,10 @@ jobs:
     name: Verify website and build image
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout with collection images
+        uses: actions/checkout@v5
+        with:
+          lfs: true
       - uses: jdx/mise-action@v3
         with:
           cache: true
@@ -70,25 +48,26 @@ jobs:
         run: mise x -- just install
       - name: Format and lint
         run: mise x -- just check
+      - name: Validate collection
+        run: mise x -- just collection-check
       - name: Check website
         run: mise x -- just website-check
-      - name: Test localisation
+      - name: Test website
         run: mise x -- pnpm --filter @mosa/website test
-      - name: Verify live collection changes without a rebuild
-        run: mise x -- just collection-website-verify
       - name: Build production image
-        run: mise x -- just website-image
-      - name: Check permanent redirects and error responses
+        run: docker build --build-arg SOURCE_COMMIT="$GITHUB_SHA" --file apps/website/Dockerfile --tag mosa-website:local .
+      - name: Check production HTTP behaviour
         run: |
           docker run --rm -d --name mosa-website-check -p 127.0.0.1:8080:8080 \
             -e NODE_ENV=test \
-            -e 'PUBLIC_COLLECTION_URL=data:application/json,{"schemaVersion":2,"releaseId":"11111111-1111-4111-8111-111111111111","records":[]}' \
+            -e SOURCE_COMMIT="$GITHUB_SHA" \
             mosa-website:local
           trap 'docker stop mosa-website-check' EXIT
           for attempt in $(seq 1 20); do
             if curl --fail --silent http://127.0.0.1:8080/es/ >/dev/null; then break; fi
             sleep 1
           done
+          test "$(curl --fail --silent http://127.0.0.1:8080/build.json | jq -r .commit)" = "$GITHUB_SHA"
           mise x -- pnpm --filter @mosa/website test:http http://127.0.0.1:8080
 
   deploy:
@@ -101,7 +80,10 @@ jobs:
       group: website-production-deploy
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout with collection images
+        uses: actions/checkout@v5
+        with:
+          lfs: true
       - uses: jdx/mise-action@v3
         with:
           cache: true
@@ -111,7 +93,7 @@ jobs:
         run: |
           git fetch origin refs/heads/main --depth=1
           test "$(git rev-parse FETCH_HEAD)" = "$GITHUB_SHA"
-      - name: Deploy website code and verify its live collection feed
+      - name: Deploy and verify the bundled collection
         env:
           COOLIFY_DEPLOY_WEBHOOK: ${{ secrets.COOLIFY_DEPLOY_WEBHOOK }}
           COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}

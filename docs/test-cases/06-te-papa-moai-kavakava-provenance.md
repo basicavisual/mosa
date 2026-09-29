@@ -69,4 +69,4 @@ The possible 1825 event remains explicitly uncertain and is qualified by the sam
 
 ## Executable coverage
 
-- [Fixture](../../supabase/fixtures/phase-2-te-papa-moai-kavakava.sql) and [SQL assertions](../../supabase/tests/database/phase-2-te-papa-moai-kavakava.test.sql).
+Historical Supabase fixtures and SQL assertions were removed with the former database stack. This case is retained as a requirement for any future model extension.

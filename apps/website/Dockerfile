@@ -6,11 +6,7 @@ ENV CI=true
 RUN corepack enable && corepack prepare pnpm@11.7.0 --activate
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY apps/explorer/package.json apps/explorer/
 COPY apps/website/package.json apps/website/
-COPY packages/public-collection packages/public-collection
-COPY packages/object-dossier packages/object-dossier
-COPY schemas/object-dossier-packet.schema.json schemas/
 
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --ignore-scripts \
@@ -23,7 +19,8 @@ RUN pnpm --filter @mosa/website build \
 
 FROM node:24.18.0-bookworm-slim AS runtime
 WORKDIR /app
-ENV NODE_ENV=production HOST=0.0.0.0 PORT=8080
+ARG SOURCE_COMMIT=unknown
+ENV NODE_ENV=production HOST=0.0.0.0 PORT=8080 SOURCE_COMMIT=$SOURCE_COMMIT
 RUN groupadd --system --gid 999 mosa \
  && useradd --system --uid 999 --gid mosa --create-home --home-dir /home/mosa mosa
 COPY --from=build --chown=mosa:mosa /deploy ./

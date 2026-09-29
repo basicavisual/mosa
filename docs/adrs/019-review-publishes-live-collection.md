@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted.
+Superseded by [ADR 020](020-use-a-git-backed-public-collection.md).
 
 ## Context
 

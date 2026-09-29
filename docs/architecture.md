@@ -1,180 +1,72 @@
 # Architecture
 
-## Applications and data flow
+## System
 
-| Component | Responsibility | Boundary |
-| --- | --- | --- |
-| `apps/explorer/` | Reader routes plus invited sign-in, private sources, drafts, catalogue administration and acceptance | Separate server-side reader and writer connections |
-| `packages/object-dossier/` | Validate packets, resolve identities and import dossiers transactionally | Shared by CLI and accepted research drafts |
-| Local research bundle tooling | Preserve PDF/HTML/JSON sources and prepare complete dossier proposals | Discovery stays local; import creates owner-private drafts, not accepted records |
-| `scripts/manage-public-collection.ts` | Hide and clear public records | Restricted maintainer connection |
-| `packages/public-collection/` | Validate public records and share the accepted-draft projectors | Strict public fields; private notes and files are excluded |
-| `apps/website/` | Server-rendered bilingual presentation of published cards and dossier pages | Reads the explorer's public feed; no database connection |
+MoSA has one deployed application and one versioned public collection.
 
-The flow is source → private proposal → identity and evidence review → Publish →
-public database projection → website feed. Manual URL
-entry remains available without archiving; PDF upload and bundle import preserve
-source bytes. Local sessions may use AI, but the hosted app has no active
-search/model worker or queue delivery. See [ADR 017](adrs/017-local-research-bundles.md).
-The public delivery boundary is recorded in [ADR 019](adrs/019-review-publishes-live-collection.md).
+```text
+source JSON ──► attributed claims ──► object page
+      │                                  ▲
+      └──► image metadata ─► LFS image ──┤
+object JSON ─► name + foreground choices ┤
+editorial Markdown ──────────────────────┘
+```
 
-## Domain model
+The Astro website validates and loads `collection/` during its build. Docker
+packages the generated server and processed images. The running container needs
+no database credentials and makes no request to a collection service.
 
-### Entities, claims and evidence
+[ADR 020](adrs/020-use-a-git-backed-public-collection.md) supersedes the former
+PostgreSQL, explorer, dossier-import and live-feed architecture.
 
-`entities` contains items, agents, places, sources, external identifiers and the
-catalogue namespace registry. `knowledge.claim` connects a subject to exactly
-one entity or literal value. Claims retain status, attribution and language;
-conflicting accounts can coexist. `knowledge.claim_evidence` relates claims to
-sources with a relationship, locator and, where applicable, excerpt.
+## Reduced collection model
 
-An object is not its catalogue record. A source can describe several objects.
-An ancestral person is an agent; physical remains or a documented museum holding
-are an item linked through `physical_remains_of`. That representation does not
-determine care, access or cultural authority.
+An **object** has a stable ID, a concise canonical navigation name and a list of
+claim IDs selected for foregrounding. Its ID remains the public URL identity.
 
-Entity rows do not store generic names, working labels or narrative notes.
-Display labels derive from attributed names, identifiers, source references or
-structured event claims. Private draft labels and administrative catalogue/case
-titles have their own scope; they are not canonical object descriptions.
-See [ADR 010](adrs/010-derive-entity-display-labels.md).
+A **source** records who authored or asserted it when known, its exact reference,
+its language, and the claims and image records derived from it. Sources and
+objects have different identities. A shared URL does not prove that two objects
+are the same.
 
-[Predicates](predicates.md) defines claim and evidence meanings.
+A **claim** has an ID, an object ID, a controlled predicate and a textual value.
+Claims stay inside sources so attribution is structural rather than an optional
+afterthought. Conflicting names and classifications can coexist.
 
-### Provenance
+An **image record** also stays inside a source. It links an object to a local,
+publishable image and records alt text, credit, rights, caption and original URL
+where available. The binary image lives in Git LFS.
 
-`provenance.event` extends an entity with a broad operational event kind. Event
-details use ordinary claims and evidence. Events are research anchors rather
-than declarations that a preferred account is true. Unresolved event identities
-remain separate anchors.
+An **editorial** is authored Markdown linked to an object. It is a publication
+layer with its own author and language. Editorial prose does not become an
+unattributed claim.
 
-Movement and transfer are distinct. An event can contain both when supported,
-but transfer does not itself establish physical movement. Current custody can
-remain a direct item claim without inventing an ongoing event. Preserve exact,
-approximate, ranged and alternative dates; presentation order does not assert a
-complete chronology. Do not restore explicit event-chain ordering or infer
-missing participants and endpoints.
+## Politics of presentation
 
-The local dossier bundle and human review can import sourced event anchors and
-claims. A general interactive provenance editor remains future work.
+The model does not pretend that a collection interface can be neutral.
+Foregrounding a Rapa Nui claim is an explicit editorial act by MoSA. The source
+and wording remain visible so prominence does not become an invisible claim of
+universal truth.
 
-### Restitution
+The canonical object name is necessary for navigation and URLs, but it is
+deliberately thin. Source-attributed names and classifications remain available
+on the page. Rich MoSA interpretation has named authorship in editorials rather
+than being smuggled into supposedly objective database fields.
 
-Restitution case storage, fixtures, SQL tests and read-only case pages are
-implemented. This is operational case management, separate from historical claims.
-`restitution` owns cases, case-item links, parties, actions, action participants,
-documents and many-to-many action-document links. Cases and actions need not be
-entity rows. They reuse item and agent identities from the other modules.
+This preserves a practical form of plurality while accepting the limits of the
+reduced phase. It does not yet model full provenance events, custody histories,
+restitution cases, cultural authority, access protocols or competing event
+chronologies. The retained [competency cases](test-cases/) document those needs
+without making the current publishing job depend on implementing all of them.
 
-Cases currently have `open` or `closed` operational status. Party roles describe
-participation, not legal standing, ownership or community representativeness.
-A case may be institution-initiated and may have several requesters or recipients.
-Outreach, request, engagement, recommendation, decision and handover are separate
-actions. Closure is separate from those actions and from a judgement of success.
+## Publication boundary
 
-Routine case facts are stored directly, not as `knowledge.claim` rows. A case
-document is not automatically claim evidence. Actions preserve partial or unknown
-dates; requests are described rather than assigned canonical remedy categories.
-A handover does not update custody, location or provenance automatically.
-No direct case/action-to-provenance-event relationship is implemented.
+Git review is the publication workflow. Everything committed under
+`collection/` is eligible for the public build. This makes publication simple
+and auditable, but it also means private notes, unlicensed media and uncertain
+drafts must stay outside that directory until the team chooses to publish them.
 
-Item pages link to cases. Case pages show minimal metadata, parties, actions and
-their documents, followed by remaining case-level documents. There are no generic
-case summary/notes fields. No recorded decision or handover means unrecorded,
-not refusal. Reviewed local dossiers can import case administration; general
-interactive case authoring, deadlines, task assignment, eligibility rules and
-multi-stage approvals remain outside the current interface.
-
-### Presentation
-
-Item pages present origin, current location, documents and provenance before
-remaining claims, restitution links and metadata. Missing information remains
-visible; these sections are projections, not canonical columns.
-See [ADR 011](adrs/011-object-information-hierarchy.md).
-
-`presentation.foregrounded_claim` selects claims for prominence. The active
-projection excludes withdrawn/superseded claims. Selection records neither a
-truth ranking nor publication permission. The current one-column relation has
-no actor, rationale, ordering or audit history. First-class Concepts remain
-deferred under [ADR 013](adrs/013-foreground-claims-and-defer-first-class-concepts.md).
-
-## Identity and write contracts
-
-The [packet schema](../schemas/object-dossier-packet.schema.json) and
-[shared importer](../packages/object-dossier/import.ts) govern canonical dossier
-writes. PostgreSQL creates canonical IDs. Dataset bindings connect symbolic packet
-keys to canonical records. Per-dataset locking and transactions prevent partial
-imports; successful checksum replay is a no-op.
-
-Bindings resolve first. Exact namespace/value identifiers can resolve objects;
-exact source references resolve sources. Name matches are warnings, not merges.
-The research interface offers source-linked candidate objects for review, but a
-shared source URL is not an exact object match. The reviewer confirms identity.
-
-| Packet version | Scope |
-| --- | --- |
-| 1 | Original summary predicates and URL sources; preserve existing replay semantics |
-| 2 | Adds `classified_as` and `described_as`; URL-only drafts use this version |
-| 3 | Adds immutable source/evidence-version references; preserved-source drafts use this version |
-| 4 | Adds the implemented claim predicates, structured dates, event anchors and restitution case administration for reviewed local dossiers |
-
-Packet v4 covers the implemented ontology while preserving the narrower v1–v3
-contracts and their replay. Retain observations that cannot be represented rather
-than coercing them into another predicate. Source `refers_to` links are derived by
-the importer.
-
-The importer skips already bound claims/evidence. Editing a packet and importing
-it again does not correct those records. Accepted drafts are immutable; controlled
-correction and supersession are roadmap work. See [ADR 012](adrs/012-object-dossier-ingestion.md).
-
-## Access and publication
-
-| Access | Intended use |
-| --- | --- |
-| `explorer_reader` | Research read projections, with read-only database transactions |
-| `capture_writer` | Invited researcher's private drafts, sources and validated acceptance |
-| `collection_publisher` | Maintainer withdrawal and historical release ledger |
-
-Reader routes retain their existing visibility; signing in protects the private
-workspace, not every explorer route. Published research is readable through the
-research reader. Original private files remain protected. Draft creation does
-not publish; the researcher's Publish decision does. Permission to send
-material to a model remains separate. Do not accept sensitive material on the
-assumption that all research pages require sign-in.
-
-The allowlist, row-level policies, source file access and private Storage work
-together. Authentication alone grants no general canonical write permission.
-Contributor/preparer metadata is distinct from source authorship and the actual
-signed-in reviewer. Bundle-supplied attribution is not verified authorship.
-
-Publish is the researcher's acceptance and public-display decision for one
-reviewed revision. Foregrounding remains editorial salience. Legacy cards need
-an evidenced name, holder, identifier and attribution; complete dossiers may
-retain unknowns. The public projection includes reviewed claims, citations,
-provenance and restitution facts, while private notes and original files remain
-excluded. The explorer serves only visible projections through its public API.
-The website has no database credentials and reads that feed at request time.
-The [publication runbook](collection-publication.md) defines withdrawal and
-website-code deployment.
-
-## Competency coverage
-
-| Cases | Requirements |
-| --- | --- |
-| [01](test-cases/01-hoa-hakananai-a.md), [02](test-cases/02-mpe-32571.md), [03](test-cases/03-moai-curvo-identity.md), [04](test-cases/04-ancestral-remains.md) | Identity, claims, evidence and ancestral remains |
-| [05](test-cases/05-mamari-provenance.md) | Movement and unresolved accounts |
-| [06](test-cases/06-te-papa-moai-kavakava-provenance.md) | Qualification and alternative dates |
-| [07](test-cases/07-hoa-hakananai-a-provenance.md) | Multiple perspectives and place roles |
-| [08](test-cases/08-la-serena-moai-provenance.md) | Sparse movement without invented agents/endpoints |
-| [09](test-cases/09-benin-ama-provenance.md) | Military removal and evidence scope |
-| [10](test-cases/10-aberdeen-head-of-an-oba-restitution.md) | Closed institution-led process |
-| [11](test-cases/11-hoa-hakananai-a-restitution.md) | Open joint request without inferred refusal |
-
-`foregrounded-claims.test.sql` checks presentation selection. Provenance competency
-fixtures do not yet establish a direct `contradicts` example; use a precise source
-conflict before extending coverage, rather than relabelling qualification.
-
-## Generated types
-
-Type generation covers `entities`, `knowledge`, `provenance`, `restitution` and
-`presentation`. Capture, ingestion and publication services use explicit SQL.
+The initial migration intentionally includes 17 canonical records and three
+previously unaccepted drafts at the owner's direction. The
+[migration report](../collection/migration-report.md) identifies those records
+for later review.

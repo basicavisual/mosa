@@ -51,4 +51,4 @@ Pass. No schema change required.
 
 ## Executable coverage
 
-- [Fixture](../../supabase/fixtures/phase-1-cases.sql) and [SQL assertions](../../supabase/tests/database/phase-1-cases.test.sql).
+Historical Supabase fixtures and SQL assertions were removed with the former database stack. This case is retained as a requirement for any future model extension.
