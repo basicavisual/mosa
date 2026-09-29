@@ -95,6 +95,6 @@ The 1868 removal is represented once as a stable event anchor with separately at
 
 ## Executable coverage
 
-- [Fixture](../../supabase/fixtures/phase-2-hoa-hakananai-a.sql) and [SQL assertions](../../supabase/tests/database/phase-2-hoa-hakananai-a.test.sql).
-- [Fixture](../../supabase/fixtures/phase-2-hoa-hakananai-a-community.sql) and [SQL assertions](../../supabase/tests/database/phase-2-hoa-hakananai-a-community.test.sql).
-- [Fixture](../../supabase/fixtures/phase-2-hoa-hakananai-a-production.sql) and [SQL assertions](../../supabase/tests/database/phase-2-hoa-hakananai-a-production.test.sql).
+Historical Supabase fixtures and SQL assertions were removed with the former
+database stack. This case is retained as a requirement for any future model
+extension.

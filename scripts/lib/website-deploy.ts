@@ -1,6 +1,3 @@
-import { parseCollection, productionFeed } from "@mosa/public-collection";
-import { canonical } from "@mosa/public-collection/candidate";
-
 export interface WebsiteDeployment {
   webhook: string;
   token: string;
@@ -8,7 +5,11 @@ export interface WebsiteDeployment {
   commit: string;
 }
 
-export async function deployWebsite(config: WebsiteDeployment) {
+export interface DeployedWebsite {
+  commit: string;
+}
+
+export async function deployWebsite(config: WebsiteDeployment): Promise<DeployedWebsite> {
   for (const value of [config.webhook, config.productionURL]) {
     const url = new URL(value);
     if (url.protocol !== "https:" || url.username || url.password)
@@ -30,9 +31,6 @@ export async function deployWebsite(config: WebsiteDeployment) {
       signal: AbortSignal.timeout(10000),
       ...options,
     });
-  const feed = await request(productionFeed, { cache: "no-store" });
-  if (!feed.ok) throw Error("The research public collection feed is not ready");
-  parseCollection(await feed.json());
 
   const applicationURL = new URL(`/api/v1/applications/${applicationId}`, webhook);
   const applicationResponse = await request(applicationURL, { headers });
@@ -42,6 +40,7 @@ export async function deployWebsite(config: WebsiteDeployment) {
     git_commit_sha?: string;
     settings?: {
       is_auto_deploy_enabled?: boolean;
+      is_git_lfs_enabled?: boolean;
       is_preview_deployments_enabled?: boolean;
     };
   };
@@ -51,8 +50,11 @@ export async function deployWebsite(config: WebsiteDeployment) {
     app.settings?.is_preview_deployments_enabled !== false
   )
     throw Error("Website hosting must use main with automatic and preview deployments disabled");
+  if (app.settings?.is_git_lfs_enabled !== true)
+    throw Error("Enable Git LFS for the website application in Coolify");
   if (app.git_commit_sha !== "HEAD")
     throw Error("Set the website application's Commit SHA to HEAD in Coolify so it follows main");
+
   const started = await request(config.webhook, { method: "POST", headers });
   if (!started.ok) throw Error(`Website deployment request failed (HTTP ${started.status})`);
   const accepted = (await started.json()) as {
@@ -66,6 +68,7 @@ export async function deployWebsite(config: WebsiteDeployment) {
     !/^[a-zA-Z0-9-]+$/.test(job.deployment_uuid)
   )
     throw Error("Hosting did not identify exactly one website deployment");
+
   const jobURL = new URL(`/api/v1/deployments/${job.deployment_uuid}`, webhook);
   const deadline = Date.now() + 180000;
   while (Date.now() < deadline) {
@@ -74,30 +77,14 @@ export async function deployWebsite(config: WebsiteDeployment) {
     const result = (await status.json()) as { status?: string; commit?: string };
     if (result.status === "finished") {
       if (result.commit !== config.commit) throw Error("Website job built a different commit");
-      const latest = await request(productionFeed, { cache: "no-store" });
-      if (!latest.ok) throw Error("The research public collection feed is unavailable");
-      const expected = parseCollection(await latest.json());
-      const served = await request(
-        new URL(`/collection-snapshot.json?verify=${Date.now()}`, config.productionURL),
-        { cache: "no-store" },
-      );
-      if (served.ok && canonical(parseCollection(await served.json())) === canonical(expected)) {
-        let pagesMatch = true;
-        for (const route of ["/es/coleccion/", "/en/collection/", "/es/visita/", "/en/visit/"]) {
-          const page = await request(
-            new URL(`${route}?verify=${Date.now()}`, config.productionURL),
-            { cache: "no-store" },
-          );
-          if (
-            !page.ok ||
-            !(await page.text()).includes(`data-release-id="${expected.releaseId}"`)
-          ) {
-            pagesMatch = false;
-            break;
-          }
-        }
-        if (pagesMatch) return expected;
+      for (const route of ["/es/coleccion/", "/en/collection/"]) {
+        const page = await request(new URL(`${route}?verify=${Date.now()}`, config.productionURL), {
+          cache: "no-store",
+        });
+        if (!page.ok || !(await page.text()).includes("data-record-id="))
+          throw Error(`Deployed collection page is incomplete: ${route}`);
       }
+      return { commit: result.commit };
     } else if (["failed", "cancelled"].includes(result.status ?? ""))
       throw Error(`Website deployment ${result.status}`);
     await new Promise((resolve) => setTimeout(resolve, 3000));

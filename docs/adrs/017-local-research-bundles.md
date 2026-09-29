@@ -2,9 +2,8 @@
 
 ## Status
 
-Accepted; implemented on 2026-09-22. Replaces hosted workers, search/model adapters
-and Supabase Queues/Cron delivery. Extends [ADR 005](005-preserve-and-version-external-records.md)
-and [ADR 012](012-object-dossier-ingestion.md).
+Superseded by [ADR 020](020-use-a-git-backed-public-collection.md). Retained as
+the record of the former private-bundle workflow.
 
 ## Context
 
@@ -41,8 +40,7 @@ signed-in ownership/review. HTML/JSON quotations are checked against saved bytes
 PDF evidence still requires visual review. Cross-bundle object identity remains a
 human decision.
 
-## Implementation
+## Historical implementation
 
-- [Local bundle migration](../../supabase/migrations/20260922200000_local_research_bundles.sql)
-- [Retirement migration](../../supabase/migrations/20260922210000_retire_hosted_research.sql)
-- [Bundle import implementation](../../apps/explorer/src/lib/sources/bundle-import.ts)
+The migrations and bundle importer were removed when the database and explorer
+were retired. Their implementation remains available in Git history.

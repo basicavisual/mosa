@@ -2,8 +2,8 @@
 
 ## Status
 
-Accepted. Foregrounded-claim storage and its active projection are implemented.
-First-class Concepts remain deferred.
+Accepted and adapted by [ADR 020](020-use-a-git-backed-public-collection.md).
+Object JSON now stores foregrounded claim IDs. First-class Concepts remain deferred.
 
 ## Context
 
@@ -62,8 +62,8 @@ The implementation demonstrates that a classification/description can be selecte
 without changing the claim, attribution or evidence; other accounts remain intact;
 several selections imply no truth ranking; duplicate selections fail; inactive
 claims are excluded; claim deletion leaves no orphan; and classification produces
-no automatic care/access/ownership/restitution conclusion. See
-[the SQL tests](../../supabase/tests/database/foregrounded-claims.test.sql).
+no automatic care/access/ownership/restitution conclusion. The reduced collection
+validator covers valid and invalid foregrounded claim references.
 
 ## When to reconsider Concepts
 

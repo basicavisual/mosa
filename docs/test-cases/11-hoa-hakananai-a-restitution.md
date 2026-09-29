@@ -253,4 +253,4 @@ The interface must not invent a free-text case summary. Absence of decision or h
 
 ## Executable coverage
 
-- [Fixture](../../supabase/fixtures/phase-3-hoa-hakananai-a.sql) and [SQL assertions](../../supabase/tests/database/phase-3-hoa-hakananai-a.test.sql).
+Historical Supabase fixtures and SQL assertions were removed with the former database stack. This case is retained as a requirement for any future model extension.

@@ -6,7 +6,5 @@ dist/
 .env
 .env.*
 !.env.example
-supabase/.temp/
 repomix-output.xml
-supabase/snippets
 research-local/

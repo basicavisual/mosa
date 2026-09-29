@@ -72,4 +72,4 @@ Do not infer `moved_to → La Serena` from later presence alone. Encode a destin
 
 ## Executable coverage
 
-- [Fixture](../../supabase/fixtures/phase-2-la-serena-moai.sql) and [SQL assertions](../../supabase/tests/database/phase-2-la-serena-moai.test.sql).
+Historical Supabase fixtures and SQL assertions were removed with the former database stack. This case is retained as a requirement for any future model extension.

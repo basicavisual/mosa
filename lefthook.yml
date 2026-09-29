@@ -13,4 +13,4 @@ pre-push:
     typecheck:
       run: mise x -- just typecheck
     unit:
-      run: mise x -- just test-unit
+      run: mise x -- just test

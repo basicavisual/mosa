@@ -1,0 +1,5 @@
+collection/images/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+collection/images/**/*.jpeg filter=lfs diff=lfs merge=lfs -text
+collection/images/**/*.png filter=lfs diff=lfs merge=lfs -text
+collection/images/**/*.webp filter=lfs diff=lfs merge=lfs -text
+collection/images/**/*.avif filter=lfs diff=lfs merge=lfs -text
