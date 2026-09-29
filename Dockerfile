@@ -6,16 +6,18 @@ ENV CI=true
 RUN corepack enable && corepack prepare pnpm@11.7.0 --activate
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY apps/website/package.json apps/website/
 
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --ignore-scripts \
  && pnpm rebuild esbuild
 
-COPY apps/website apps/website
+COPY astro.config.mjs tsconfig.json ./
+COPY src src
+COPY public public
+COPY scripts scripts
 COPY collection collection
-RUN pnpm --filter @mosa/website build \
- && pnpm --filter @mosa/website deploy --legacy --prod --ignore-scripts /deploy
+RUN pnpm build \
+ && pnpm deploy --legacy --prod --ignore-scripts /deploy
 
 FROM node:24.18.0-bookworm-slim AS runtime
 WORKDIR /app

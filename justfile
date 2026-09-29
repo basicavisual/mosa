@@ -16,23 +16,23 @@ install:
 alias dev := website-dev
 
 website-dev *args:
-    pnpm --filter @mosa/website dev "$@"
+    pnpm dev "$@"
 
 website-preview *args:
-    pnpm --filter @mosa/website preview "$@"
+    pnpm preview "$@"
 
 # Build the public website.
 build: website-build
 
 website-build:
-    pnpm --filter @mosa/website build
+    pnpm build
 
 website-check:
-    pnpm --filter @mosa/website check
+    pnpm check
 
 # Validate the Git-backed public collection and all cross-file references.
 collection-check:
-    pnpm --filter @mosa/website validate:collection
+    pnpm validate:collection
 
 format:
     pnpm exec biome format --write .
@@ -76,7 +76,7 @@ verify: verify-static
 docker-build: website-image
 
 website-image:
-    docker build --file apps/website/Dockerfile --tag mosa-website:local .
+    docker build --file Dockerfile --tag mosa-website:local .
 
 # Deploy the website and bundled collection from the current main commit.
 website-deploy:

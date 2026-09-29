@@ -1,10 +1,10 @@
-import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { checkDocumentation } from "./lib/documentation";
 import { repositoryFiles } from "./lib/repository-files";
 import { runCommand } from "./lib/run-command";
 
 async function main() {
-  const root = path.resolve(__dirname, "..");
+  const root = fileURLToPath(new URL("../", import.meta.url));
   const files = (await repositoryFiles(root)).filter(
     (file) => file.endsWith(".md") && !file.startsWith("."),
   );

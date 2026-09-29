@@ -8,7 +8,7 @@ import {
   validateCollection,
 } from "../src/data/collection-model";
 
-const root = fileURLToPath(new URL("../../../collection/", import.meta.url));
+const root = fileURLToPath(new URL("../collection/", import.meta.url));
 const files = async (directory: string, extension: string) =>
   (await readdir(path.join(root, directory), { withFileTypes: true }).catch(() => []))
     .filter((entry) => entry.isFile() && entry.name.endsWith(extension))

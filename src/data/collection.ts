@@ -11,20 +11,20 @@ import {
   validateCollection,
 } from "./collection-model";
 
-const objectModules = import.meta.glob<unknown>("../../../../collection/objects/*.json", {
+const objectModules = import.meta.glob<unknown>("../../collection/objects/*.json", {
   eager: true,
   import: "default",
 });
-const sourceModules = import.meta.glob<unknown>("../../../../collection/sources/*.json", {
+const sourceModules = import.meta.glob<unknown>("../../collection/sources/*.json", {
   eager: true,
   import: "default",
 });
 const imageModules = import.meta.glob<ImageMetadata>(
-  "../../../../collection/images/**/*.{avif,jpeg,jpg,png,webp}",
+  "../../collection/images/**/*.{avif,jpeg,jpg,png,webp}",
   { eager: true, import: "default" },
 );
 const editorialModules = import.meta.glob<MarkdownInstance<Record<string, unknown>>>(
-  "../../../../collection/editorials/*.md",
+  "../../collection/editorials/*.md",
   { eager: true },
 );
 
