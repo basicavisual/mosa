@@ -16,18 +16,11 @@ COPY src src
 COPY public public
 COPY scripts scripts
 COPY collection collection
-RUN pnpm build \
- && pnpm deploy --legacy --prod --ignore-scripts /deploy
+RUN pnpm build
 
-FROM node:24.18.0-bookworm-slim AS runtime
-WORKDIR /app
-ARG SOURCE_COMMIT=unknown
-ENV NODE_ENV=production HOST=0.0.0.0 PORT=8080 SOURCE_COMMIT=$SOURCE_COMMIT
-RUN groupadd --system --gid 999 mosa \
- && useradd --system --uid 999 --gid mosa --create-home --home-dir /home/mosa mosa
-COPY --from=build --chown=mosa:mosa /deploy ./
-USER mosa
+FROM nginxinc/nginx-unprivileged:1.29-alpine AS runtime
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build --chown=101:101 /app/dist /usr/share/nginx/html
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD node -e "fetch('http://127.0.0.1:8080/es/').then(r=>process.exit(r.status===200?0:1)).catch(()=>process.exit(1))"
-CMD ["node", "dist/server/entry.mjs"]
+  CMD wget --quiet --tries=1 --output-document=/dev/null http://127.0.0.1:8080/es/ || exit 1

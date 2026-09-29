@@ -1,10 +1,9 @@
-import node from "@astrojs/node";
 import { defineConfig } from "astro/config";
 import { validateLocalisation } from "./scripts/validate-localisation.ts";
 import { siteURL } from "./src/i18n/routes.ts";
 export default defineConfig({
   site: siteURL,
-  output: "server",
+  output: "static",
   trailingSlash: "ignore",
   i18n: {
     defaultLocale: "es",
@@ -14,6 +13,6 @@ export default defineConfig({
   integrations: [
     { name: "localisation-checks", hooks: { "astro:build:start": () => validateLocalisation() } },
   ],
-  adapter: node({ mode: "standalone" }),
-  server: { host: "0.0.0.0", port: 8080 },
+  server: { host: "0.0.0.0", port: 4322 },
+  preview: { host: "0.0.0.0", port: 4322 },
 });

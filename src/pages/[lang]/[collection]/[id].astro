@@ -1,10 +1,28 @@
 ---
 import { Image } from "astro:assets";
 import EditorialArticle from "../../../components/EditorialArticle.astro";
-import { getObjectRecord } from "../../../data/collection";
+import { collectionObjects, getObjectRecord } from "../../../data/collection";
 import { predicateLabel } from "../../../i18n/predicates";
-import { type Locale, pagePath } from "../../../i18n/routes";
+import { type Locale, localeIds, pagePath } from "../../../i18n/routes";
 import Layout from "../../../layouts/Layout.astro";
+
+interface Props {
+  locale: Locale;
+  objectId: string;
+}
+
+export function getStaticPaths() {
+  return collectionObjects.flatMap((object) =>
+    localeIds.map((locale) => ({
+      params: {
+        lang: locale,
+        collection: locale === "es" ? "coleccion" : "collection",
+        id: object.id,
+      },
+      props: { locale, objectId: object.id },
+    })),
+  );
+}
 
 const copy = {
   en: {
@@ -34,12 +52,9 @@ const copy = {
     missing: "No se encontró el objeto",
   },
 } as const;
-const locale: Locale = Astro.params.lang === "en" ? "en" : "es";
-const validRoute =
-  (Astro.params.lang === "en" && Astro.params.collection === "collection") ||
-  (Astro.params.lang === "es" && Astro.params.collection === "coleccion");
-const record = validRoute ? getObjectRecord(Astro.params.id ?? "") : undefined;
-if (!record) Astro.response.status = 404;
+const { locale, objectId } = Astro.props;
+const record = getObjectRecord(objectId);
+if (!record) throw new Error(`Missing collection object ${objectId}`);
 const t = copy[locale];
 const exactURL = (value: string) => {
   try {

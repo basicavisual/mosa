@@ -31,4 +31,3 @@ justfile
 mise.toml
 vitest.config.ts
 tsconfig.scripts.json
-scripts

@@ -7,15 +7,23 @@ import Events from "../templates/events.astro";
 import Home from "../templates/home.astro";
 import Resources from "../templates/resources.astro";
 import Visit from "../templates/visit.astro";
-import NotFound from "./404.astro";
 
-const match = pageIds.flatMap((page) => localeIds.map((locale) => ({
-  locale, page, path: pagePath(page, locale),
-}))).find((entry) => entry.path === Astro.url.pathname);
-if (!match) Astro.response.status = 404;
-const locale: Locale = match?.locale ?? "es";
-const page: PageId = match?.page ?? "home";
+interface Props {
+  locale: Locale;
+  page: PageId;
+}
+
+export function getStaticPaths() {
+  return pageIds.flatMap((page) =>
+    localeIds.map((locale) => ({
+      params: { path: pagePath(page, locale).replace(/^\//, "").replace(/\/$/, "") },
+      props: { locale, page },
+    })),
+  );
+}
+
+const { locale, page } = Astro.props;
 const staticTemplates = { home: Home, about: About, events: Events, resources: Resources, contact: Contact };
 const StaticTemplate = staticTemplates[page as keyof typeof staticTemplates] ?? Home;
 ---
-{!match ? <NotFound /> : page === "collection" ? <Collection locale={locale} /> : page === "visit" ? <Visit locale={locale} /> : <StaticTemplate locale={locale} />}
+{page === "collection" ? <Collection locale={locale} /> : page === "visit" ? <Visit locale={locale} /> : <StaticTemplate locale={locale} />}
