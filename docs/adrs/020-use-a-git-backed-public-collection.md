@@ -4,6 +4,10 @@
 
 Accepted.
 
+Extended by [ADR 021](021-use-a-single-package-static-website.md), which moves
+the sole website to the repository root and changes its runtime to static
+output.
+
 ## Context
 
 The PostgreSQL ontology and research application require a database, private
