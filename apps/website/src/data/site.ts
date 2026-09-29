@@ -1,7 +1,8 @@
-import type { PublicCollection } from "@mosa/public-collection";
 import labels from "../content/pages/reference-labels.json";
 import resources from "../content/pages/resource-summaries.json";
 import type { Locale } from "../i18n/routes";
+
+export { collectionRecords, getObjectRecord } from "./collection";
 
 export const contactEmail = "mosa@radicaldata.org";
 export const conceptIds = [
@@ -23,39 +24,6 @@ export const getConcepts = (locale: Locale) =>
   }));
 export const getTypes = (locale: Locale) =>
   typeIds.map((id) => ({ id, label: labels[locale][id] }));
-export function collectionRecords(data: PublicCollection) {
-  return data.records.map((record) =>
-    "kind" in record
-      ? {
-          ...record,
-          searchExact: [
-            record.label,
-            ...record.identifiers.map((entry) => `${entry.namespace} ${entry.value}`),
-            ...record.claims.map(
-              (claim) => `${claim.subject.label} ${claim.predicate} ${claim.value.text}`,
-            ),
-          ].join(" "),
-          searchFoldable: record.label,
-        }
-      : {
-          ...record,
-          institution: record.holder.text,
-          searchExact: [
-            record.name.text,
-            record.holder.text,
-            record.name.attributedTo,
-            record.holder.attributedTo,
-            record.identifier.namespace,
-            record.identifier.value,
-          ].join(" "),
-          // Preserve original-name spelling; fold accents only in institution search.
-          searchFoldable: record.holder.text,
-        },
-  );
-}
-export function getCollection(_locale: Locale, data: PublicCollection) {
-  return collectionRecords(data);
-}
 const resourceIds = ["guide", "letter", "directory", "generator"] as const;
 export function getResources(locale: Locale) {
   const copy = resources[locale];

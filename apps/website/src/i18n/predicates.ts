@@ -10,6 +10,7 @@ const labels = {
   found_at: ["Found at", "Encontrado en"],
   located_at: ["Located at", "Ubicado en"],
   held_by: ["Reported holder", "Custodia informada"],
+  catalogue_number: ["Catalogue number", "Número de catálogo"],
   refers_to: ["Refers to", "Se refiere a"],
   depicts: ["Depicts", "Representa"],
   authored_by: ["Authored by", "Creado por"],

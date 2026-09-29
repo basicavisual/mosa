@@ -1,5 +1,4 @@
 ---
-import { liveCollection } from "../data/live-collection";
 import { type Locale, localeIds, type PageId, pageIds, pagePath } from "../i18n/routes";
 import About from "../templates/about.astro";
 import Collection from "../templates/collection.astro";
@@ -16,11 +15,7 @@ const match = pageIds.flatMap((page) => localeIds.map((locale) => ({
 if (!match) Astro.response.status = 404;
 const locale: Locale = match?.locale ?? "es";
 const page: PageId = match?.page ?? "home";
-const publicCollection = match && (page === "collection" || page === "visit")
-  ? await liveCollection().catch(() => null) : null;
-if (match && (page === "collection" || page === "visit") && !publicCollection)
-  Astro.response.status = 503;
 const staticTemplates = { home: Home, about: About, events: Events, resources: Resources, contact: Contact };
 const StaticTemplate = staticTemplates[page as keyof typeof staticTemplates] ?? Home;
 ---
-{!match ? <NotFound /> : page === "collection" ? <Collection locale={locale} publicCollection={publicCollection} /> : page === "visit" ? <Visit locale={locale} publicCollection={publicCollection} /> : <StaticTemplate locale={locale} />}
+{!match ? <NotFound /> : page === "collection" ? <Collection locale={locale} /> : page === "visit" ? <Visit locale={locale} /> : <StaticTemplate locale={locale} />}
