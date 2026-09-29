@@ -12,12 +12,19 @@ object JSON ─► name + foreground choices ┤
 editorial Markdown ──────────────────────┘
 ```
 
-The Astro website validates and loads `collection/` during its build. Docker
-packages the generated server and processed images. The running container needs
-no database credentials and makes no request to a collection service.
+The root Astro project validates and loads `collection/` during its build. It
+generates every language and object page as static HTML. Docker packages those
+files and processed images in an unprivileged Nginx image. The running container
+has no Node.js application, database credentials or collection-service request.
 
 [ADR 020](adrs/020-use-a-git-backed-public-collection.md) supersedes the former
-PostgreSQL, explorer, dossier-import and live-feed architecture.
+PostgreSQL, explorer, dossier-import and live-feed architecture. [ADR
+021](adrs/021-use-a-single-package-static-website.md) records the root
+single-package layout and static runtime.
+
+The repository remains a pnpm project, but it is not a multi-package monorepo.
+`pnpm-workspace.yaml` holds engine and supply-chain settings for the root
+package; it does not declare application packages.
 
 ## Reduced collection model
 

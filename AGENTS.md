@@ -20,7 +20,8 @@
 
 | Path | Responsibility |
 | --- | --- |
-| `apps/website/` | Server-rendered Astro website and collection validation |
+| `src/` | Static Astro website, local content and collection loading |
+| `public/` | Website assets copied without processing |
 | `collection/objects/` | Object identity and foregrounding selections |
 | `collection/sources/` | Source metadata, attributed claims and image records |
 | `collection/editorials/` | Authored Markdown publications linked to objects |
@@ -41,7 +42,7 @@ repository tasks and pnpm owns dependencies.
 | Documentation only | `just docs-check` and `git diff --check` |
 | Collection records or images | `just collection-check`, website tests and `just website-build` |
 | Website or shared TypeScript | Relevant unit tests, then `just verify-static` |
-| Website HTTP behaviour | Website image plus `pnpm --filter @mosa/website test:http http://127.0.0.1:8080` |
+| Website HTTP behaviour | Website image plus `pnpm test:http http://127.0.0.1:8080` |
 
 `just verify` runs formatting, documentation, type, unit and build checks.
 
@@ -71,7 +72,7 @@ repository tasks and pnpm owns dependencies.
 - Preserve object UUIDs because they form public URLs.
 - Keep Spanish and English routes structurally paired. Use explicit language
   metadata for prose in another language.
-- Deploy through `apps/website/Dockerfile`. The build must not need database
+- Deploy through the root `Dockerfile`. The build must not need database
   credentials or a network collection feed.
 
 ## Keep guidance current

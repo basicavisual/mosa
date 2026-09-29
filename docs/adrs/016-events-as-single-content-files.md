@@ -13,7 +13,8 @@ validation meet current needs without remote content or content relationships.
 
 ## Decision
 
-Keep one bilingual JSON file per event under `apps/website/src/content/events/`, loaded synchronously through `import.meta.glob` in `src/data/load-events.ts`.
+Keep one bilingual JSON file per event under `src/content/events/`, loaded
+synchronously through `import.meta.glob` in `src/data/load-events.ts`.
 
 The filename supplies the ID. One exported Zod schema validates facts, paired
 translations, image/alternative-text pairing and allowed markup, rejecting unknown

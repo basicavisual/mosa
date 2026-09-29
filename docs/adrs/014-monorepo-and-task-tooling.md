@@ -2,8 +2,10 @@
 
 ## Status
 
-Partly superseded by [ADR 020](020-use-a-git-backed-public-collection.md). The
-website, mise, just and pnpm choices remain; the explorer and database were removed.
+Partly superseded by [ADR 020](020-use-a-git-backed-public-collection.md) and
+[ADR 021](021-use-a-single-package-static-website.md). The website, mise, just
+and pnpm choices remain; the explorer and database were removed, and the sole
+application moved to the repository root.
 
 ## Context
 
@@ -27,3 +29,9 @@ The local Supabase project ID changes the development container namespace. Exist
 The website can be developed and built without a database. Its static container
 remains database-free. The later publication workflow uses a private ledger and
 manual deployment gate; see [publication](../collection-publication.md).
+
+## Implementation note
+
+ADR 021 replaced the earlier application workspace layout after MoSA became a
+single-application repository. The current Astro project and Dockerfile are at
+the repository root.

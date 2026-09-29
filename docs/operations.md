@@ -10,17 +10,21 @@ The site needs no database, object storage account or collection API.
 
 ## Docker
 
-`just website-image` builds `apps/website/Dockerfile` from the repository
-root. Git LFS must be hydrated before the Docker build because `.git` is not in
-the build context. The image listens on port 8080 and exposes `/build.json` for
-commit and collection-count verification.
+`just website-image` builds the root `Dockerfile`. Git LFS must be hydrated
+before the Docker build because `.git` is not in the build context. Astro
+generates the whole site in the build stage; the runtime image serves the files
+with unprivileged Nginx on port 8080.
 
-For an exact local revision marker, build with:
+Build it directly with:
 
 ```sh
-docker build --build-arg SOURCE_COMMIT="$(git rev-parse HEAD)" \
-  --file apps/website/Dockerfile --tag mosa-website:local .
+docker build --file Dockerfile --tag mosa-website:local .
 ```
+
+`just website-preview` is useful for inspecting generated pages, but it does
+not apply the production Nginx root redirect, cache headers or custom 404
+response. Use the Docker image and `pnpm test:http http://127.0.0.1:8080` for
+those.
 
 ## Coolify
 
@@ -28,15 +32,15 @@ The website application must use:
 
 - branch `main`;
 - commit SHA `HEAD`;
-- Dockerfile `apps/website/Dockerfile` with the repository root as context;
+- root `Dockerfile` with the repository root as context;
 - exposed port 8080;
 - automatic deployments disabled;
 - preview deployments disabled;
 - Git LFS enabled.
 
-Coolify provides `SOURCE_COMMIT` to the running container. The deployment
-script checks the application settings, triggers one deployment, verifies the
-job commit, reads `/build.json` and checks both collection routes.
+The deployment script checks the application settings, triggers one deployment,
+verifies Coolify's job commit and checks both collection routes. Coolify's
+deployment history remains the record of which commit is currently live.
 
 GitHub's Website workflow is the production release path. It requires
 `COOLIFY_DEPLOY_WEBHOOK` and `COOLIFY_API_TOKEN` secrets plus the

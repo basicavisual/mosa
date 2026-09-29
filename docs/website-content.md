@@ -6,12 +6,12 @@ editorial does not need an invented translation.
 
 ## Page copy
 
-Page copy lives in `apps/website/src/content/pages/`. Each JSON file contains
-paired `es` and `en` passages used by one shared template. Keep the same keys
-in both languages. Interface messages live under `apps/website/src/i18n/`.
+Page copy lives in `src/content/pages/`. Each JSON file contains paired `es`
+and `en` passages used by one shared template. Keep the same keys in both
+languages. Interface messages live under `src/i18n/`.
 
-Events live in `apps/website/src/content/events/`, one bilingual JSON file per
-event. Removing an event file removes it from the generated listing.
+Events live in `src/content/events/`, one bilingual JSON file per event.
+Removing an event file removes it from the generated listing.
 
 After editing copy, run `just website-check` and the website unit tests. Review
 both routes in the browser, including language switching, keyboard navigation,
@@ -31,7 +31,7 @@ service.
 The local General Sans fonts do not cover every Rapa Nui character. The
 `public/fonts/noto-sans-eng.woff2` subset supplies current additional
 characters under the
-[SIL Open Font License](../apps/website/public/fonts/noto-sans-OFL.txt).
+[SIL Open Font License](../public/fonts/noto-sans-OFL.txt).
 
 ## Collection presentation
 

@@ -5,8 +5,7 @@ collection of source-attributed records about displaced cultural objects.
 
 The website, collection data, editorials and publishable images all live in this
 repository. There is no database or separate research application. A deployment
-builds one Docker image from the repository using
-[`apps/website/Dockerfile`](apps/website/Dockerfile).
+builds one static Docker image from the root [`Dockerfile`](Dockerfile).
 
 Public website: [museumofstolenartefacts.org](https://museumofstolenartefacts.org/).
 This is the configured project address, not a live health report.
@@ -38,7 +37,9 @@ before committing. Run `just` to list all commands.
 | `collection/sources/` | Sources with their attributed claims and image records |
 | `collection/editorials/` | Optional authored Markdown publications linked to objects |
 | `collection/images/` | Publishable image files stored through Git LFS |
-| `apps/website/` | Astro website and collection validation |
+| `src/` | Astro pages, components, content and collection loading |
+| `public/` | Static website assets copied without processing |
+| `scripts/` | Collection, documentation, deployment and HTTP verification |
 | `docs/` | Current guides, decisions and retained competency cases |
 
 Read [collection authoring](docs/collection-publication.md) before adding public
