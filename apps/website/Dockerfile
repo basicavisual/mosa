@@ -17,6 +17,7 @@ RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
  && pnpm rebuild esbuild
 
 COPY apps/website apps/website
+COPY collection collection
 RUN pnpm --filter @mosa/website build \
  && pnpm --filter @mosa/website deploy --legacy --prod --ignore-scripts /deploy
 
