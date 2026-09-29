@@ -7,7 +7,7 @@ const config = {
   productionURL: "https://museum.example",
   commit: "a".repeat(40),
 };
-const build = { commit: config.commit, objects: 20, sources: 13 };
+const deployed = { commit: config.commit };
 const app = (settings: Record<string, boolean> = {}) =>
   Response.json({
     git_branch: "main",
@@ -33,7 +33,7 @@ describe("website deployment", () => {
     expect(fetch).toHaveBeenCalledTimes(1);
   });
 
-  it("verifies the deployed commit, collection metadata and both language listings", async () => {
+  it("verifies the deployed commit and both language listings", async () => {
     const fetch = vi
       .fn()
       .mockResolvedValueOnce(app())
@@ -41,11 +41,10 @@ describe("website deployment", () => {
         Response.json({ deployments: [{ resource_uuid: "website", deployment_uuid: "job-1" }] }),
       )
       .mockResolvedValueOnce(Response.json({ status: "finished", commit: config.commit }))
-      .mockResolvedValueOnce(Response.json(build))
       .mockResolvedValueOnce(new Response('<article data-record-id="object-1">'))
       .mockResolvedValueOnce(new Response('<article data-record-id="object-1">'));
     vi.stubGlobal("fetch", fetch);
-    await expect(deployWebsite(config)).resolves.toEqual(build);
-    expect(fetch).toHaveBeenCalledTimes(6);
+    await expect(deployWebsite(config)).resolves.toEqual(deployed);
+    expect(fetch).toHaveBeenCalledTimes(5);
   });
 });

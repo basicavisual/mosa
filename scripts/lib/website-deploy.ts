@@ -5,13 +5,11 @@ export interface WebsiteDeployment {
   commit: string;
 }
 
-export interface DeployedBuild {
+export interface DeployedWebsite {
   commit: string;
-  objects: number;
-  sources: number;
 }
 
-export async function deployWebsite(config: WebsiteDeployment): Promise<DeployedBuild> {
+export async function deployWebsite(config: WebsiteDeployment): Promise<DeployedWebsite> {
   for (const value of [config.webhook, config.productionURL]) {
     const url = new URL(value);
     if (url.protocol !== "https:" || url.username || url.password)
@@ -79,30 +77,14 @@ export async function deployWebsite(config: WebsiteDeployment): Promise<Deployed
     const result = (await status.json()) as { status?: string; commit?: string };
     if (result.status === "finished") {
       if (result.commit !== config.commit) throw Error("Website job built a different commit");
-      const buildResponse = await request(
-        new URL(`/build.json?verify=${Date.now()}`, config.productionURL),
-        { cache: "no-store" },
-      );
-      if (buildResponse.ok) {
-        const build = (await buildResponse.json()) as Partial<DeployedBuild>;
-        if (
-          build.commit === config.commit &&
-          Number.isInteger(build.objects) &&
-          Number.isInteger(build.sources) &&
-          (build.objects ?? 0) > 0 &&
-          (build.sources ?? 0) > 0
-        ) {
-          for (const route of ["/es/coleccion/", "/en/collection/"]) {
-            const page = await request(
-              new URL(`${route}?verify=${Date.now()}`, config.productionURL),
-              { cache: "no-store" },
-            );
-            if (!page.ok || !(await page.text()).includes("data-record-id="))
-              throw Error(`Deployed collection page is incomplete: ${route}`);
-          }
-          return build as DeployedBuild;
-        }
+      for (const route of ["/es/coleccion/", "/en/collection/"]) {
+        const page = await request(new URL(`${route}?verify=${Date.now()}`, config.productionURL), {
+          cache: "no-store",
+        });
+        if (!page.ok || !(await page.text()).includes("data-record-id="))
+          throw Error(`Deployed collection page is incomplete: ${route}`);
       }
+      return { commit: result.commit };
     } else if (["failed", "cancelled"].includes(result.status ?? ""))
       throw Error(`Website deployment ${result.status}`);
     await new Promise((resolve) => setTimeout(resolve, 3000));

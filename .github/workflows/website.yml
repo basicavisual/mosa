@@ -4,16 +4,25 @@ on:
   push:
     branches: [main]
     paths: &website-paths
-      - "apps/website/**"
+      - "src/**"
+      - "public/**"
       - "collection/**"
       - ".gitattributes"
+      - ".dockerignore"
+      - "Dockerfile"
+      - "nginx.conf"
+      - "astro.config.mjs"
       - "scripts/deploy-website.ts"
       - "scripts/lib/website-deploy*"
+      - "scripts/validate-collection.ts"
+      - "scripts/validate-localisation.ts"
+      - "scripts/verify-http.ts"
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
+      - "tsconfig.json"
+      - "vitest.config.ts"
       - "justfile"
-      - ".dockerignore"
       - ".github/workflows/website.yml"
   pull_request:
     paths: *website-paths
@@ -53,22 +62,19 @@ jobs:
       - name: Check website
         run: mise x -- just website-check
       - name: Test website
-        run: mise x -- pnpm --filter @mosa/website test
+        run: mise x -- pnpm test
       - name: Build production image
-        run: docker build --build-arg SOURCE_COMMIT="$GITHUB_SHA" --file apps/website/Dockerfile --tag mosa-website:local .
+        run: docker build --file Dockerfile --tag mosa-website:local .
       - name: Check production HTTP behaviour
         run: |
           docker run --rm -d --name mosa-website-check -p 127.0.0.1:8080:8080 \
-            -e NODE_ENV=test \
-            -e SOURCE_COMMIT="$GITHUB_SHA" \
             mosa-website:local
           trap 'docker stop mosa-website-check' EXIT
           for attempt in $(seq 1 20); do
             if curl --fail --silent http://127.0.0.1:8080/es/ >/dev/null; then break; fi
             sleep 1
           done
-          test "$(curl --fail --silent http://127.0.0.1:8080/build.json | jq -r .commit)" = "$GITHUB_SHA"
-          mise x -- pnpm --filter @mosa/website test:http http://127.0.0.1:8080
+          mise x -- pnpm test:http http://127.0.0.1:8080
 
   deploy:
     name: Deploy public website
