@@ -10,7 +10,7 @@ The site needs no database, object storage account or collection API.
 
 ## Docker
 
-`just website-image` builds the root `Dockerfile`. Git LFS must be hydrated
+`just image` builds the root `Dockerfile`. Git LFS must be hydrated
 before the Docker build because `.git` is not in the build context. Astro
 generates the whole site in the build stage; the runtime image serves the files
 with unprivileged Nginx on port 8080.
@@ -21,7 +21,7 @@ Build it directly with:
 docker build --file Dockerfile --tag mosa-website:local .
 ```
 
-`just website-preview` is useful for inspecting generated pages, but it does
+`just preview` is useful for inspecting generated pages, but it does
 not apply the production Nginx root redirect, cache headers or custom 404
 response. Use the Docker image and `pnpm test:http http://127.0.0.1:8080` for
 those.

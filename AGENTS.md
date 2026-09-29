@@ -30,7 +30,7 @@
 | `docs/adrs/`, `docs/test-cases/` | Decisions and retained domain requirements |
 
 Put unit tests beside their implementation. Shared tests live in `scripts/lib/`.
-Run a selection with `just test-unit <path>`.
+Run a selection with `just test <path>`.
 
 ## Commands
 
@@ -40,8 +40,8 @@ repository tasks and pnpm owns dependencies.
 | Change | Verification |
 | --- | --- |
 | Documentation only | `just docs-check` and `git diff --check` |
-| Collection records or images | `just collection-check`, website tests and `just website-build` |
-| Website or shared TypeScript | Relevant unit tests, then `just verify-static` |
+| Collection records or images | `just collection-check`, relevant tests and `just build` |
+| Website or shared TypeScript | Relevant tests, then `just verify` |
 | Website HTTP behaviour | Website image plus `pnpm test:http http://127.0.0.1:8080` |
 
 `just verify` runs formatting, documentation, type, unit and build checks.

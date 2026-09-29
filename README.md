@@ -19,7 +19,7 @@ mise trust
 mise install
 git lfs install
 mise exec -- just install
-mise exec -- just website-dev
+mise exec -- just dev
 ```
 
 Open <http://localhost:4322/es/> or <http://localhost:4322/en/>. The website

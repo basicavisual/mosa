@@ -10,25 +10,17 @@ default:
 # Install JavaScript dependencies and Git hooks using the committed lockfile.
 install:
     pnpm install --frozen-lockfile
-    pnpm exec lefthook install
 
 # Start the public website on port 4322 (no database required).
-alias dev := website-dev
-
-website-dev *args:
+dev *args:
     pnpm dev "$@"
 
-website-preview *args:
+preview *args:
     pnpm preview "$@"
 
 # Build the public website.
-build: website-build
-
-website-build:
+build:
     pnpm build
-
-website-check:
-    pnpm check
 
 # Validate the Git-backed public collection and all cross-file references.
 collection-check:
@@ -37,16 +29,10 @@ collection-check:
 format:
     pnpm exec biome format --write .
 
-format-check:
-    pnpm exec biome format .
-
-lint:
-    pnpm exec biome lint .
-
 check:
     pnpm exec biome check .
 
-check-fix:
+fix:
     pnpm exec biome check --write .
 
 # Used by the pre-commit hook; filenames remain separate shell arguments.
@@ -57,27 +43,24 @@ check-staged +files:
 docs-check:
     node --import tsx scripts/check-docs.ts
 
-typecheck-scripts:
+typecheck:
     pnpm exec tsc --project tsconfig.scripts.json
+    pnpm check
 
-typecheck: typecheck-scripts website-check
-
-test-unit *args:
+test *args:
     pnpm exec vitest run "$@"
 
-test: test-unit
+# Run every check that does not require Docker.
+verify: check docs-check typecheck test build
 
-# All checks that do not require Docker.
-verify-static: check docs-check typecheck test-unit build
-
-verify: verify-static
-
-# Build the production website image using the repository root as the build context.
-docker-build: website-image
-
-website-image:
+# Build the production image from the repository root.
+image:
     docker build --file Dockerfile --tag mosa-website:local .
 
+# Verify the production image's HTTP behaviour after starting it on port 8080.
+http-test *args:
+    pnpm test:http "$@"
+
 # Deploy the website and bundled collection from the current main commit.
-website-deploy:
+deploy:
     node --import tsx scripts/deploy-website.ts

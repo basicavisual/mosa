@@ -95,7 +95,7 @@ Run:
 
 ```sh
 just collection-check
-just website-build
+just build
 ```
 
 Review the affected object page in both routes. Check attribution, source

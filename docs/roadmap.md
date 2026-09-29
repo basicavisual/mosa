@@ -23,7 +23,7 @@ introducing another canonical datastore.
 
 ## Release checks
 
-Before a production release, run `just verify` and `just website-image`.
+Before a production release, run `just verify` and `just image`.
 Confirm Coolify has Git LFS enabled and review the affected Spanish and English
 pages. Hosted deployment and image delivery can only be confirmed against the
 real production application.

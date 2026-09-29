@@ -13,7 +13,7 @@ languages. Interface messages live under `src/i18n/`.
 Events live in `src/content/events/`, one bilingual JSON file per event.
 Removing an event file removes it from the generated listing.
 
-After editing copy, run `just website-check` and the website unit tests. Review
+After editing copy, run `just typecheck` and the relevant website tests. Review
 both routes in the browser, including language switching, keyboard navigation,
 narrow screens, enlarged text and mixed-language passages.
 

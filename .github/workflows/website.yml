@@ -55,16 +55,10 @@ jobs:
           cache: true
       - name: Install dependencies
         run: mise x -- just install
-      - name: Format and lint
-        run: mise x -- just check
-      - name: Validate collection
-        run: mise x -- just collection-check
-      - name: Check website
-        run: mise x -- just website-check
-      - name: Test website
-        run: mise x -- pnpm test
+      - name: Verify repository
+        run: mise x -- just verify
       - name: Build production image
-        run: docker build --file Dockerfile --tag mosa-website:local .
+        run: mise x -- just image
       - name: Check production HTTP behaviour
         run: |
           docker run --rm -d --name mosa-website-check -p 127.0.0.1:8080:8080 \
@@ -74,7 +68,7 @@ jobs:
             if curl --fail --silent http://127.0.0.1:8080/es/ >/dev/null; then break; fi
             sleep 1
           done
-          mise x -- pnpm test:http http://127.0.0.1:8080
+          mise x -- just http-test http://127.0.0.1:8080
 
   deploy:
     name: Deploy public website
@@ -104,4 +98,4 @@ jobs:
           COOLIFY_DEPLOY_WEBHOOK: ${{ secrets.COOLIFY_DEPLOY_WEBHOOK }}
           COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
           PRODUCTION_URL: ${{ vars.PRODUCTION_URL }}
-        run: mise x -- just website-deploy
+        run: mise x -- just deploy

@@ -10,7 +10,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro check && astro build",
+    "build": "astro build",
     "check": "astro check",
     "preview": "astro preview",
     "validate:collection": "node --import tsx scripts/validate-collection.ts",

@@ -15,7 +15,7 @@ describe("documentation checks", () => {
         "![image](image.png)",
         "[ref]: <guide with spaces.md#café>",
         "```sh",
-        "just test-unit scripts/example.test.ts",
+        "just test scripts/example.test.ts",
         "[fake](missing.md)",
         "```",
         "Prose just mentions things. Use `just docs-check`.",
@@ -26,7 +26,7 @@ describe("documentation checks", () => {
       "guide with spaces.md#café",
       "image.png",
     ]);
-    expect(parsed.commands.map((command) => command.recipe)).toEqual(["test-unit", "docs-check"]);
+    expect(parsed.commands.map((command) => command.recipe)).toEqual(["test", "docs-check"]);
   });
 
   it("reports broken files, anchors and recipes while accepting valid local and external links", async () => {
